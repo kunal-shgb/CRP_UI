@@ -18,12 +18,12 @@ import { api } from "@/lib/api";
 const userSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["admin", "ho", "ro", "branch"]),
+  role: z.enum(["ADMIN", "HEAD_OFFICE", "REGIONAL_OFFICE", "BRANCH"]),
   branchId: z.string().optional(),
   roId: z.string().optional(),
 }).refine(data => {
-  if (data.role === "branch" && !data.branchId) return false;
-  if (data.role === "ro" && !data.roId) return false;
+  if (data.role === "BRANCH" && !data.branchId) return false;
+  if (data.role === "REGIONAL_OFFICE" && !data.roId) return false;
   return true;
 }, {
   message: "Branch/RO selection is required for this role",
@@ -66,7 +66,7 @@ export default function AdminUsers() {
     defaultValues: {
       username: "",
       password: "",
-      role: "branch",
+      role: "BRANCH",
     },
   });
 
@@ -79,8 +79,8 @@ export default function AdminUsers() {
         password: data.password,
         role: data.role,
       };
-      if (data.role === "branch" && data.branchId) payload.branchId = parseInt(data.branchId);
-      if (data.role === "ro" && data.roId) payload.roId = parseInt(data.roId);
+      if (data.role === "BRANCH" && data.branchId) payload.branchId = parseInt(data.branchId);
+      if (data.role === "REGIONAL_OFFICE" && data.roId) payload.roId = parseInt(data.roId);
 
       const res = await api.post("/admin/user", payload);
       return res.data;
@@ -232,10 +232,10 @@ export default function AdminUsers() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="branch">Branch</SelectItem>
-                        <SelectItem value="ro">Regional Office</SelectItem>
-                        <SelectItem value="ho">Head Office</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="BRANCH">Branch</SelectItem>
+                        <SelectItem value="REGIONAL_OFFICE">Regional Office</SelectItem>
+                        <SelectItem value="HEAD_OFFICE">Head Office</SelectItem>
+                        <SelectItem value="ADMIN">Admin</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -243,7 +243,7 @@ export default function AdminUsers() {
                 )}
               />
 
-              {roleWatch === "branch" && (
+              {roleWatch === "BRANCH" && (
                 <FormField
                   control={form.control}
                   name="branchId"
@@ -268,7 +268,7 @@ export default function AdminUsers() {
                 />
               )}
 
-              {roleWatch === "ro" && (
+              {roleWatch === "REGIONAL_OFFICE" && (
                 <FormField
                   control={form.control}
                   name="roId"
