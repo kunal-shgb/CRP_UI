@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Building2, Loader2, Lock, User as UserIcon } from "lucide-react";
+import logo from "../images/RRB_Grameen-Bank_Logo_Haryana_Pantone_Linear-2_English_CTC.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,11 +74,15 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center justify-center text-center space-y-2">
-          <div className="h-12 w-12 bg-primary text-primary-foreground rounded-lg flex items-center justify-center shadow-md">
-            <Building2 className="h-6 w-6" />
+          <div className="h-50 w-auto flex items-center justify-center">
+            <img 
+              src={logo} 
+              alt="Haryana Gramin Bank Logo" 
+              className="h-full w-auto object-contain"
+            />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Haryana Gramin Bank  Complaint Resolution Portal</h1>
-          <p className="text-muted-foreground">Login to access your account</p>
+          <h1 className="text-3xl tracking-tight">Complaint Resolution Portal</h1>
+          {/* <p className="text-muted-foreground">Login to access your account</p> */}
         </div>
 
         <Card className="shadow-lg border-muted">

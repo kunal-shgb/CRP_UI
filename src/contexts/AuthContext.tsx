@@ -34,7 +34,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (token) {
         try {
           const res = await api.get<{id: number, username: string, role: string, branchId?: number, roId?: number}>("/auth/profile");
-          setUser(res.data as User);
+          const fetchedUser = res.data;
+          fetchedUser.role = fetchedUser.role?.toLowerCase() || '';
+          setUser(fetchedUser as User);
         } catch (error) {
           console.error("Failed to load user profile", error);
           localStorage.removeItem("token");
@@ -48,6 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (token: string, userData: User) => {
     localStorage.setItem("token", token);
+    if (userData.role) {
+      userData.role = userData.role.toLowerCase() as UserRole;
+    }
     setUser(userData);
   };
 
