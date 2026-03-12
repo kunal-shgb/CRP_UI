@@ -33,7 +33,7 @@ export default function AdminBranches() {
   const { data: ros = [], isLoading: loadingRos } = useQuery({
     queryKey: ["ros"],
     queryFn: async () => {
-      const res = await api.get("/admin/ro");
+      const res = await api.get("/admin/regionalOffice");
       return res.data;
     }
   });
@@ -58,7 +58,7 @@ export default function AdminBranches() {
 
   const createRoMutation = useMutation({
     mutationFn: async (data: z.infer<typeof roSchema>) => {
-      const res = await api.post("/admin/ro", data);
+      const res = await api.post("/admin/regionalOffice", data);
       return res.data;
     },
     onSuccess: () => {
@@ -68,7 +68,7 @@ export default function AdminBranches() {
       roForm.reset();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to create RO");
+      toast.error(error.response?.data?.message || "Failed to create Regional Office");
     }
   });
 
@@ -106,7 +106,7 @@ export default function AdminBranches() {
         <h1 className="text-2xl font-semibold tracking-tight">Branch Mapping</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setShowRoCreate(true)} className="gap-1.5">
-            <Plus className="h-4 w-4" /> Add RO
+            <Plus className="h-4 w-4" /> Add Regional Office
           </Button>
           <Button onClick={() => setShowBranchCreate(true)} className="gap-1.5">
             <Plus className="h-4 w-4" /> Add Branch
@@ -120,13 +120,13 @@ export default function AdminBranches() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {ros.map((ro: any) => {
-            const roBranches = branches.filter((b: any) => b.ro?.id === ro.id || b.roId === ro.id);
+          {ros.map((regionalOffice: any) => {
+            const roBranches = branches.filter((b: any) => b.regionalOffice?.id === regionalOffice.id || b.roId === regionalOffice.id);
             return (
-              <div key={ro.id} className="rounded-lg bg-card shadow-card p-6 border border-border/50">
+              <div key={regionalOffice.id} className="rounded-lg bg-card shadow-card p-6 border border-border/50">
                 <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-lg font-medium">{ro.name}</h2>
-                  <span className="text-xs font-mono bg-muted px-2 py-1 rounded">{ro.code}</span>
+                  <h2 className="text-lg font-medium">{regionalOffice.name}</h2>
+                  <span className="text-xs font-mono bg-muted px-2 py-1 rounded">{regionalOffice.code}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">{roBranches.length} branches mapped</p>
                 <div className="space-y-2">
@@ -152,7 +152,7 @@ export default function AdminBranches() {
         </div>
       )}
 
-      {/* RO Create Dialog */}
+      {/* Regional Office Create Dialog */}
       <Dialog open={showRoCreate} onOpenChange={setShowRoCreate}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -165,7 +165,7 @@ export default function AdminBranches() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>RO Name *</FormLabel>
+                    <FormLabel>Regional Office Name *</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Mumbai Regional Office" {...field} />
                     </FormControl>
@@ -178,7 +178,7 @@ export default function AdminBranches() {
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>RO Code *</FormLabel>
+                    <FormLabel>Regional Office Code *</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. RO001" {...field} />
                     </FormControl>
@@ -190,7 +190,7 @@ export default function AdminBranches() {
                 <Button type="button" variant="outline" onClick={() => setShowRoCreate(false)}>Cancel</Button>
                 <Button type="submit" disabled={createRoMutation.isPending}>
                   {createRoMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create RO
+                  Create Regional Office
                 </Button>
               </DialogFooter>
             </form>
@@ -241,7 +241,7 @@ export default function AdminBranches() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select RO" />
+                          <SelectValue placeholder="Select Regional Office" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

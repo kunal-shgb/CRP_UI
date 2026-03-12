@@ -14,9 +14,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const endpoint = user?.role === "branch" ? "/tickets/branch" 
-                 : user?.role === "ro" ? "/tickets/ro" 
-                 : "/tickets/ho"; // for ho and admin
+  const endpoint = user?.role === "BRANCH" ? "/tickets/branch"
+    : user?.role === "REGIONAL_OFFICE" ? "/tickets/regionalOffice"
+      : "/tickets/headOffice"; // for HEAD_OFFICE and admin
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets", user?.role],
@@ -29,14 +29,14 @@ export default function Dashboard() {
 
   const openTickets = tickets.filter((t: any) => !["Resolved", "Closed"].includes(t.status));
   const closedTickets = tickets.filter((t: any) => ["Resolved", "Closed"].includes(t.status));
-  const pendingRO = tickets.filter((t: any) => t.status === "Pending at RO").length;
-  const pendingHO = tickets.filter((t: any) => ["Pending at HO", "Escalated to HO"].includes(t.status)).length;
+  const pendingRO = tickets.filter((t: any) => t.status === "Pending at Regional Office").length;
+  const pendingHO = tickets.filter((t: any) => ["Pending at Head Office", "Escalated to Head Office"].includes(t.status)).length;
 
   const productCounts = tickets.reduce((acc: any, t: any) => {
     acc[t.product] = (acc[t.product] || 0) + 1;
     return acc;
   }, {});
-  
+
   const productData = Object.keys(productCounts).map(p => ({
     name: p,
     count: productCounts[p],
@@ -76,8 +76,8 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard title="Total Open" value={openTickets.length} icon={TicketIcon} subtitle={`${tickets.length} total tickets`} />
             <StatCard title="Resolved / Closed" value={closedTickets.length} icon={CheckCircle} />
-            <StatCard title="Pending at RO" value={pendingRO} icon={Clock} />
-            <StatCard title="Pending / Escalated HO" value={pendingHO} icon={AlertTriangle} />
+            <StatCard title="Pending at Regional Office" value={pendingRO} icon={Clock} />
+            <StatCard title="Pending / Escalated Head Office" value={pendingHO} icon={AlertTriangle} />
           </div>
 
           {/* Charts */}
@@ -102,7 +102,7 @@ export default function Dashboard() {
             </div>
 
             <div className="rounded-lg bg-card p-6 shadow-card">
-              <h2 className="text-base font-medium mb-4">RO-wise Distribution</h2>
+              <h2 className="text-base font-medium mb-4">Regional Office-wise Distribution</h2>
               <div className="h-64">
                 {roData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">

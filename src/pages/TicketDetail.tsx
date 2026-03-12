@@ -95,11 +95,11 @@ export default function TicketDetail() {
   }
 
   const getRoleColor = (role: string) => {
-    switch (role?.toLowerCase()) {
-      case "branch": return "bg-blue-100 text-blue-800";
-      case "ro": return "bg-amber-100 text-amber-800";
-      case "ho": return "bg-emerald-100 text-emerald-800";
-      case "admin": return "bg-purple-100 text-purple-800";
+    switch (role?.toUpperCase()) {
+      case "BRANCH": return "bg-blue-100 text-blue-800";
+      case "REGIONAL_OFFICE": return "bg-amber-100 text-amber-800";
+      case "HEAD_OFFICE": return "bg-emerald-100 text-emerald-800";
+      case "ADMIN": return "bg-purple-100 text-purple-800";
       default: return "bg-muted text-muted-foreground";
     }
   };
@@ -187,12 +187,12 @@ export default function TicketDetail() {
           {isOpen && (
             <div className="rounded-lg bg-card shadow-card p-6 border border-border/50">
               <h2 className="text-base font-medium mb-3">Add Note</h2>
-              <Textarea 
-                value={comment} 
-                onChange={(e) => setComment(e.target.value)} 
-                rows={3} 
-                placeholder="Add an internal note or update..." 
-                className="resize-none mb-3" 
+              <Textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                placeholder="Add an internal note or update..."
+                className="resize-none mb-3"
                 disabled={commentMutation.isPending}
               />
               <div className="flex items-center gap-2">
@@ -270,24 +270,24 @@ export default function TicketDetail() {
             <div className="rounded-lg bg-card shadow-card p-6 border border-border/50">
               <h2 className="text-base font-medium mb-3">Workflow Actions</h2>
               <div className="space-y-2">
-                {ticket.status !== "Escalated to HO" && ticket.status !== "Pending at HO" && user?.role === "ro" && (
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start gap-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700 text-orange-600 transition-colors" 
+                {ticket.status !== "Escalated to Head Office" && ticket.status !== "Pending at Head Office" && user?.role === "REGIONAL_OFFICE" && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700 text-orange-600 transition-colors"
                     onClick={() => escalateMutation.mutate()}
                     disabled={escalateMutation.isPending}
                   >
-                    {escalateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />} 
+                    {escalateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />}
                     Escalate to Head Office
                   </Button>
                 )}
-                {(user?.role === "ho" || user?.role === "admin" || user?.role === "ro") && (
-                  <Button 
-                    className="w-full justify-start gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" 
+                {(user?.role === "HEAD_OFFICE" || user?.role === "ADMIN" || user?.role === "REGIONAL_OFFICE") && (
+                  <Button
+                    className="w-full justify-start gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
                     onClick={() => resolveMutation.mutate()}
                     disabled={resolveMutation.isPending}
                   >
-                    {resolveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />} 
+                    {resolveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
                     Mark as Resolved
                   </Button>
                 )}

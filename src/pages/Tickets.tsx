@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NewTicketDialog } from "@/components/NewTicketDialog";
-import { PRODUCTS, REGIONAL_OFFICES, type TicketStatus } from "@/lib/mock-data";
+import { PRODUCTS, type TicketStatus } from "@/lib/mock-data";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
-const STATUSES: TicketStatus[] = ["Pending at RO", "Pending at HO", "Escalated to HO", "Resolved", "Closed"];
+const STATUSES: TicketStatus[] = ["Pending at Head Office", "Escalated to Head Office", "Resolved", "Closed", "Pending at Regional Office"];
 
 export default function Tickets() {
   const navigate = useNavigate();
@@ -23,9 +23,17 @@ export default function Tickets() {
   const [roFilter, setRoFilter] = useState<string>("all");
   const [showNewTicket, setShowNewTicket] = useState(false);
 
-  const endpoint = user?.role === "branch" ? "/tickets/branch" 
-                 : user?.role === "ro" ? "/tickets/ro" 
-                 : "/tickets/ho"; // for ho and admin
+  const { data: ros = [], isLoading: loadingRos } = useQuery({
+    queryKey: ["ros"],
+    queryFn: async () => {
+      const res = await api.get("/admin/regionalOffice");
+      return res.data;
+    }
+  });
+  console.log("user", user)
+  const endpoint = user?.role === "BRANCH" ? "/tickets/branch"
+    : user?.role === "REGIONAL_OFFICE" ? "/tickets/regionalOffice"
+      : "/tickets/headOffice"; // for ho and admin
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets", user?.role],
@@ -42,17 +50,17 @@ export default function Tickets() {
       const utrStr = t.utr_rrn || t.utr || "";
       const accountStr = t.account_number || t.accountNumber || "";
       const productStr = t.product_type || t.product || "";
-      
+
       const searchLower = search.toLowerCase();
-      const matchSearch = !search || 
-                          ticketIdStr.toLowerCase().includes(searchLower) || 
-                          utrStr.toLowerCase().includes(searchLower) || 
-                          accountStr.toLowerCase().includes(searchLower);
-      
+      const matchSearch = !search ||
+        ticketIdStr.toLowerCase().includes(searchLower) ||
+        utrStr.toLowerCase().includes(searchLower) ||
+        accountStr.toLowerCase().includes(searchLower);
+
       const matchStatus = statusFilter === "all" || t.status === statusFilter;
       const matchProduct = productFilter === "all" || productStr === productFilter;
       const matchRO = roFilter === "all" || t.regionalOffice === roFilter;
-      
+
       return matchSearch && matchStatus && matchProduct && matchRO;
     });
   }, [tickets, search, statusFilter, productFilter, roFilter]);
@@ -66,7 +74,7 @@ export default function Tickets() {
     >
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">All Tickets</h1>
-        {(user?.role === "branch" || user?.role === "admin") && (
+        {(user?.role === "BRANCH" || user?.role === "REGIONAL_OFFICE") && (
           <Button onClick={() => setShowNewTicket(true)} className="gap-1.5">
             <Plus className="h-4 w-4" /> New Ticket
           </Button>
@@ -97,7 +105,11 @@ export default function Tickets() {
           <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="Regional Office" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All ROs</SelectItem>
-            {REGIONAL_OFFICES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+            {loadingRos ? (
+              <SelectItem value="loading" disabled>Loading...</SelectItem>
+            ) : (
+              ros.map((r: any) => <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>)
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -112,7 +124,7 @@ export default function Tickets() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">UTR/RRN</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Product</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Branch</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">RO</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Regional Office</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Created</th>
@@ -130,7 +142,7 @@ export default function Tickets() {
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <p className="text-sm text-muted-foreground">No tickets found.</p>
-                    {(user?.role === "branch" || user?.role === "admin") && (
+                    {(user?.role === "BRANCH" || user?.role === "REGIONAL_OFFICE") && (
                       <Button variant="outline" className="mt-3" onClick={() => setShowNewTicket(true)}>Create New Ticket</Button>
                     )}
                   </td>

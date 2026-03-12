@@ -34,7 +34,7 @@ const App = () => (
                 <Route path="/tickets/:id" element={<TicketDetail />} />
                 
                 {/* Admin only routes */}
-                <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+                <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/branches" element={<AdminBranches />} />
                   <Route path="/admin/settings" element={<AdminSettings />} />

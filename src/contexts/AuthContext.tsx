@@ -1,9 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { api } from "@/lib/api";
-import { AppUser } from "@/lib/mock-data"; 
 // We will transition away from mock-data entirely later, but for now we'll redefine User here to match the API
 
-export type UserRole = "branch" | "ro" | "ho" | "admin";
+export type UserRole = "BRANCH" | "REGIONAL_OFFICE" | "HEAD_OFFICE" | "ADMIN";
 
 export interface User {
   id: number;
@@ -35,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const res = await api.get<{id: number, username: string, role: string, branchId?: number, roId?: number}>("/auth/profile");
           const fetchedUser = res.data;
-          fetchedUser.role = fetchedUser.role?.toLowerCase() || '';
+          fetchedUser.role = fetchedUser.role?.toUpperCase() || '';
           setUser(fetchedUser as User);
         } catch (error) {
           console.error("Failed to load user profile", error);
@@ -51,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (token: string, userData: User) => {
     localStorage.setItem("token", token);
     if (userData.role) {
-      userData.role = userData.role.toLowerCase() as UserRole;
+      userData.role = userData.role as UserRole;
     }
     setUser(userData);
   };

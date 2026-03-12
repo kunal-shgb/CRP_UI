@@ -91,7 +91,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {user?.role === "admin" && (
+        {user?.role === "ADMIN" && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[11px] font-medium tracking-widest uppercase text-muted-foreground px-2">
               {!collapsed && "Administration"}

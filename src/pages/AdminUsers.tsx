@@ -26,7 +26,7 @@ const userSchema = z.object({
   if (data.role === "REGIONAL_OFFICE" && !data.roId) return false;
   return true;
 }, {
-  message: "Branch/RO selection is required for this role",
+  message: "Branch/Regional Office selection is required for this role",
   path: ["role"], // This is a general error, but we can assign it to role
 });
 
@@ -56,7 +56,7 @@ export default function AdminUsers() {
   const { data: ros = [] } = useQuery({
     queryKey: ["ros"],
     queryFn: async () => {
-      const res = await api.get("/admin/ro");
+      const res = await api.get("/admin/regionalOffice");
       return res.data;
     }
   });
@@ -106,10 +106,10 @@ export default function AdminUsers() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "branch": return "bg-blue-100 text-blue-800";
-      case "ro": return "bg-amber-100 text-amber-800";
-      case "ho": return "bg-emerald-100 text-emerald-800";
-      case "admin": return "bg-purple-100 text-purple-800";
+      case "BRANCH": return "bg-blue-100 text-blue-800";
+      case "REGIONAL_OFFICE": return "bg-amber-100 text-amber-800";
+      case "HEAD_OFFICE": return "bg-emerald-100 text-emerald-800";
+      case "ADMIN": return "bg-purple-100 text-purple-800";
       default: return "bg-muted text-muted-foreground";
     }
   };
@@ -119,7 +119,7 @@ export default function AdminUsers() {
 
   const getLocationText = (user: any) => {
     if (user.role === 'branch' && user.branchId) return getBranchName(user.branchId);
-    if (user.role === 'ro' && user.roId) return getRoName(user.roId);
+    if (user.role === 'regionalOffice' && user.roId) return getRoName(user.roId);
     return "—";
   };
 
@@ -151,7 +151,7 @@ export default function AdminUsers() {
               <tr className="bg-secondary/50">
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Username</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Branch / RO</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Branch / Regional Office</th>
               </tr>
             </thead>
             <tbody>
@@ -278,7 +278,7 @@ export default function AdminUsers() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select RO" />
+                            <SelectValue placeholder="Select Regional Office" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

@@ -94,27 +94,27 @@ export default function Login() {
       }}
     >
       {/* Header */}
-      <header className="w-full bg-white/90 backdrop-blur-sm py-2 px-6 md:px-12 flex flex-col md:flex-row items-center md:justify-start shadow-sm z-10 border-t-4 border-t-[#0056b3] shrink-0">
-        <div className="flex items-center justify-center md:justify-start w-full gap-4">
+      <header className="w-full backdrop-blur-sm py-2 px-6 md:px-12 flex flex-col md:flex-row items-center md:justify-start shadow-sm z-10 border-t-4 border-t-[#0056b3] shrink-0">
+        <div className="flex items-center justify-center md:justify-center w-full gap-4">
           <img
             src={logo}
             alt="Haryana Gramin Bank Logo"
-            className="h-10 md:h-12 w-auto object-contain"
+            className="h-10 md:h-20 w-auto object-contain"
           />
-          <div className="h-8 w-px bg-gray-300 hidden md:block"></div>
+          {/* <div className="h-8 w-px bg-gray-300 hidden md:block"></div>
           <h1 className="text-lg md:text-xl font-bold text-[#003366] tracking-tight text-center md:text-left">
             Complaint Resolution Portal
-          </h1>
+          </h1> */}
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-evenly p-2 relative z-10 w-full overflow-y-auto">
         
-        <Card className="w-full max-w-[380px] shadow-2xl border-0 bg-white/95 backdrop-blur-md rounded-xl overflow-hidden shrink-0">
+        <Card className="w-full max-w-[500px] shadow-2xl border-0 bg-white/50 backdrop-blur-md rounded-xl overflow-hidden shrink-0">
           <div className="p-6">
             <h2 className="text-xl font-bold text-center text-[#003366] mb-6 pb-3 border-b border-gray-100 uppercase tracking-wide">
-              Login
+              Complaint Resolution Portal
             </h2>
 
             <Form {...form}>
@@ -193,16 +193,14 @@ export default function Login() {
         </Card>
 
         {/* Bottom Process Panel */}
-        <div className="w-[90%] max-w-4xl mx-auto bg-white/95 backdrop-blur-md rounded-xl shadow-lg p-4 md:p-5 flex flex-wrap lg:flex-nowrap justify-center lg:justify-between items-center gap-4 z-10 border border-gray-100 shrink-0">
+        <div className="w-[45%] max-w-4xl mx-auto bg-white/50 backdrop-blur-md rounded-xl shadow-lg p-4 md:p-5 flex flex-wrap lg:flex-nowrap justify-center lg:justify-between items-center gap-4 z-10 border border-gray-100 shrink-0">
           <ProcessStep icon={FileText} title="File Complaint" step={1} />
           <div className="hidden lg:block flex-1 h-[2px] bg-gray-200 mx-2"></div>
-          <ProcessStep icon={ClipboardCheck} title="Verification" step={2} />
+          <ProcessStep icon={Search} title="Investigation" step={2} />
           <div className="hidden lg:block flex-1 h-[2px] bg-gray-200 mx-2"></div>
-          <ProcessStep icon={Search} title="Investigation" step={3} />
+          <ProcessStep icon={Settings} title="Resolution" step={3} />
           <div className="hidden lg:block flex-1 h-[2px] bg-gray-200 mx-2"></div>
-          <ProcessStep icon={Settings} title="Resolution" step={4} />
-          <div className="hidden lg:block flex-1 h-[2px] bg-gray-200 mx-2"></div>
-          <ProcessStep icon={Bell} title="Status Updated" step={5} />
+          <ProcessStep icon={Bell} title="Status Updated" step={4} />
         </div>
       </main>
 
