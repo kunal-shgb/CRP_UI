@@ -1,0 +1,72 @@
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { api } from "@/lib/api";
+import { AppUser } from "@/lib/mock-data"; 
+// We will transition away from mock-data entirely later, but for now we'll redefine User here to match the API
+
+export type UserRole = "branch" | "ro" | "ho" | "admin";
+
+export interface User {
+  id: number;
+  username: string;
+  role: UserRole;
+  branchId?: number;
+  roId?: number;
+  iat?: number;
+  exp?: number;
+}
+
+interface AuthState {
+  user: User | null;
+  isLoading: boolean;
+  login: (token: string, userData: User) => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthState | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const res = await api.get<{id: number, username: string, role: string, branchId?: number, roId?: number}>("/auth/profile");
+          setUser(res.data as User);
+        } catch (error) {
+          console.error("Failed to load user profile", error);
+          localStorage.removeItem("token");
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
+  }, []);
+
+  const login = (token: string, userData: User) => {
+    localStorage.setItem("token", token);
+    setUser(userData);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}

@@ -5,8 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PRODUCTS, BRANCHES, BRANCH_RO_MAP, MOCK_TICKETS } from "@/lib/mock-data";
+import { PRODUCTS } from "@/lib/mock-data";
 import { toast } from "sonner";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 interface NewTicketDialogProps {
   open: boolean;
@@ -21,12 +24,36 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const queryClient = useQueryClient();
+
+  // Fetch branches dynamically
+  const { data: branches = [] } = useQuery({
+    queryKey: ["branches"],
+    queryFn: async () => {
+      const res = await api.get("/admin/branch");
+      return res.data;
+    }
+  });
+
+  const createTicketMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await api.post("/tickets", payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Ticket created successfully.");
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      onOpenChange(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to create ticket.");
+    }
+  });
+
   const validate = () => {
     const e: Record<string, string> = {};
     if (!utr.trim()) e.utr = "UTR/RRN is required";
-    else if (MOCK_TICKETS.some(t => t.utr === utr.trim() && !["Resolved", "Closed"].includes(t.status))) {
-      e.utr = "An open ticket already exists for this UTR";
-    }
     if (!account.trim()) e.account = "Account number is required";
     if (!product) e.product = "Product type is required";
     if (!branch) e.branch = "Branch is required";
@@ -37,10 +64,18 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
 
   const handleSubmit = () => {
     if (!validate()) return;
-    const ticketId = `T2024-08-${String(MOCK_TICKETS.length + 1).padStart(3, "0")}`;
-    toast.success(`Ticket ${ticketId} created successfully.`);
-    onOpenChange(false);
-    resetForm();
+    
+    // According to Postman: utr_rrn, account_number, product_type, issue_type, description
+    const payload = {
+      utr_rrn: utr.trim(),
+      account_number: account.trim(),
+      product_type: product,
+      issue_type: "General Complaint", // Hardcoded fallback for now, maybe add input later
+      description: description.trim(),
+      branchId: branch // Assuming we need to send branchId, though Postman doesn't explicitly show it
+    };
+
+    createTicketMutation.mutate(payload);
   };
 
   const resetForm = () => {
@@ -80,11 +115,10 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
             <Select value={branch} onValueChange={setBranch}>
               <SelectTrigger><SelectValue placeholder="Select branch" /></SelectTrigger>
               <SelectContent>
-                {BRANCHES.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                {branches.map((b: any) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
               </SelectContent>
             </Select>
             {errors.branch && <p className="text-xs text-destructive">{errors.branch}</p>}
-            {branch && <p className="text-[11px] text-muted-foreground">Assigned to: {BRANCH_RO_MAP[branch]}</p>}
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="desc" className="text-xs font-medium">Description of Issue *</Label>
@@ -99,7 +133,10 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => { resetForm(); onOpenChange(false); }}>Cancel</Button>
-          <Button onClick={handleSubmit}>Create Ticket</Button>
+          <Button onClick={handleSubmit} disabled={createTicketMutation.isPending}>
+            {createTicketMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Create Ticket
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

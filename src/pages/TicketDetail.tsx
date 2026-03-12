@@ -1,21 +1,87 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Paperclip, Send, ArrowUpRight, CheckCircle } from "lucide-react";
+import { ArrowLeft, Paperclip, Send, ArrowUpRight, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/StatusBadge";
-import { MOCK_TICKETS, getRoleColor } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function TicketDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [comment, setComment] = useState("");
 
-  const ticket = MOCK_TICKETS.find(t => t.id === id);
+  const { data: ticket, isLoading } = useQuery({
+    queryKey: ["ticket", id],
+    queryFn: async () => {
+      // Real API call for fetching ticket by ID
+      const res = await api.get(`/tickets/${id}`);
+      return res.data;
+    },
+    enabled: !!id,
+  });
+
+  const commentMutation = useMutation({
+    mutationFn: async (note: string) => {
+      const res = await api.post(`/tickets/${id}/comments`, { comment: note });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Comment added successfully.");
+      setComment("");
+      queryClient.invalidateQueries({ queryKey: ["ticket", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to add comment.");
+    }
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(`/tickets/${id}/resolve`, { notes: "Resolved via portal" });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Ticket resolved successfully.");
+      queryClient.invalidateQueries({ queryKey: ["ticket", id] });
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to resolve ticket.");
+    }
+  });
+
+  const escalateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(`/tickets/${id}/escalate`, { notes: "Escalated for further review" });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Ticket escalated successfully.");
+      queryClient.invalidateQueries({ queryKey: ["ticket", id] });
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to escalate ticket.");
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mr-2" />
+        <p className="text-lg font-medium text-foreground">Loading ticket details...</p>
+      </div>
+    );
+  }
 
   if (!ticket) {
     return (
@@ -28,13 +94,26 @@ export default function TicketDetail() {
     );
   }
 
+  const getRoleColor = (role: string) => {
+    switch (role?.toLowerCase()) {
+      case "branch": return "bg-blue-100 text-blue-800";
+      case "ro": return "bg-amber-100 text-amber-800";
+      case "ho": return "bg-emerald-100 text-emerald-800";
+      case "admin": return "bg-purple-100 text-purple-800";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
+
   const isOpen = !["Resolved", "Closed"].includes(ticket.status);
 
   const handleAddComment = () => {
     if (!comment.trim()) return;
-    toast.success("Comment added successfully.");
-    setComment("");
+    commentMutation.mutate(comment);
   };
+
+  // Safe accessors for API payload
+  const ticketIdStr = ticket.id?.toString().padStart(4, '0') || ticket.id;
+  const auditLogs = ticket.auditTrail || ticket.comments || [];
 
   return (
     <motion.div
@@ -49,8 +128,10 @@ export default function TicketDetail() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{ticket.id}</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Created by {ticket.createdBy} on {new Date(ticket.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</p>
+          <h1 className="text-2xl font-semibold tracking-tight">TKT-{ticketIdStr}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Created by {ticket.createdBy || ticket.author?.username || "System"} on {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
+          </p>
         </div>
       </div>
 
@@ -58,53 +139,69 @@ export default function TicketDetail() {
         {/* Left: Details + Audit Trail */}
         <div className="space-y-6">
           {/* Description */}
-          <div className="rounded-lg bg-card shadow-card p-6">
+          <div className="rounded-lg bg-card shadow-card p-6 border border-border/50">
             <h2 className="text-base font-medium mb-3">Complaint Details</h2>
-            <p className="text-sm leading-relaxed" style={{ textWrap: "pretty" }}>{ticket.description}</p>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{ticket.description}</p>
           </div>
 
-          {/* Audit Trail */}
-          <div className="rounded-lg bg-card shadow-card p-6">
-            <h2 className="text-base font-medium mb-4">Audit Trail</h2>
+          {/* Audit Trail / Comments */}
+          <div className="rounded-lg bg-card shadow-card p-6 border border-border/50">
+            <h2 className="text-base font-medium mb-4">Activity Timeline</h2>
             <div className="space-y-0">
-              {ticket.auditTrail.map((entry, i) => (
-                <div key={entry.id} className="flex gap-3 relative">
-                  {/* Timeline line */}
-                  {i < ticket.auditTrail.length - 1 && (
-                    <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
-                  )}
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-border bg-card z-10">
-                    <div className="h-2 w-2 rounded-full bg-primary" />
-                  </div>
-                  <div className="pb-6 flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium">{entry.user}</span>
-                      <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold", getRoleColor(entry.role))}>
-                        {entry.role}
-                      </span>
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {new Date(entry.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · {new Date(entry.timestamp).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-                      </span>
+              {auditLogs.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No activity recorded yet.</p>
+              ) : (
+                auditLogs.map((entry: any, i: number) => (
+                  <div key={entry.id || i} className="flex gap-3 relative">
+                    {/* Timeline line */}
+                    {i < auditLogs.length - 1 && (
+                      <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
+                    )}
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-border bg-card z-10">
+                      <div className="h-2 w-2 rounded-full bg-primary" />
                     </div>
-                    <p className="text-sm font-medium text-foreground/80 mt-0.5">{entry.action}</p>
-                    {entry.note && <p className="text-sm text-muted-foreground mt-1">{entry.note}</p>}
+                    <div className="pb-6 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium">{entry.user || entry.author?.username || "System"}</span>
+                        <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase", getRoleColor(entry.role || entry.author?.role))}>
+                          {entry.role || entry.author?.role || "System"}
+                        </span>
+                        <span className="text-xs text-muted-foreground ml-auto">
+                          {entry.timestamp || entry.createdAt ? (
+                            <>
+                              {new Date(entry.timestamp || entry.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · {new Date(entry.timestamp || entry.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                            </>
+                          ) : "Recently"}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium text-foreground/80 mt-0.5">{entry.action || "Comment Added"}</p>
+                      {(entry.note || entry.comment) && <p className="text-sm text-muted-foreground mt-1 bg-muted/30 p-2 rounded-md border border-border/50 mt-2">{entry.note || entry.comment}</p>}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
           {/* Add Comment */}
           {isOpen && (
-            <div className="rounded-lg bg-card shadow-card p-6">
-              <h2 className="text-base font-medium mb-3">Add Comment</h2>
-              <Textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={3} placeholder="Add a note or resolution comment..." className="resize-none mb-3" />
+            <div className="rounded-lg bg-card shadow-card p-6 border border-border/50">
+              <h2 className="text-base font-medium mb-3">Add Note</h2>
+              <Textarea 
+                value={comment} 
+                onChange={(e) => setComment(e.target.value)} 
+                rows={3} 
+                placeholder="Add an internal note or update..." 
+                className="resize-none mb-3" 
+                disabled={commentMutation.isPending}
+              />
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="gap-1.5">
+                <Button variant="outline" size="sm" className="gap-1.5" disabled={true} title="Attachment feature coming soon">
                   <Paperclip className="h-3.5 w-3.5" /> Attach File
                 </Button>
-                <Button size="sm" onClick={handleAddComment} className="gap-1.5 ml-auto">
-                  <Send className="h-3.5 w-3.5" /> Add Comment
+                <Button size="sm" onClick={handleAddComment} className="gap-1.5 ml-auto" disabled={commentMutation.isPending || !comment.trim()}>
+                  {commentMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  {commentMutation.isPending ? "Adding..." : "Add Note"}
                 </Button>
               </div>
             </div>
@@ -114,59 +211,55 @@ export default function TicketDetail() {
         {/* Right: Metadata + Actions */}
         <div className="space-y-6">
           {/* Status & Meta */}
-          <div className="rounded-lg bg-card shadow-card p-6">
+          <div className="rounded-lg bg-card shadow-card p-6 border border-border/50">
             <div className="space-y-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Status</p>
-                <StatusBadge status={ticket.status} />
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Current Status</p>
+                <StatusBadge status={ticket.status || "Open"} />
               </div>
               <Separator />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Product</p>
-                  <p className="text-sm font-medium">{ticket.product}</p>
+                  <p className="text-sm font-medium">{ticket.product_type || ticket.product || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Amount</p>
-                  <p className="text-sm font-medium font-mono">₹{ticket.amount.toLocaleString("en-IN")}</p>
+                  <p className="text-sm font-medium font-mono">{ticket.amount ? `₹${ticket.amount.toLocaleString("en-IN")}` : "—"}</p>
                 </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">UTR/RRN</p>
-                  <p className="text-sm font-medium font-mono">{ticket.utr}</p>
+                <div className="col-span-2">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">UTR / RRN</p>
+                  <p className="text-sm font-medium font-mono bg-muted/50 p-1.5 rounded inline-block">{ticket.utr_rrn || ticket.utr || "—"}</p>
                 </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Account</p>
-                  <p className="text-sm font-medium font-mono">{ticket.accountNumber}</p>
+                <div className="col-span-2">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Account Number</p>
+                  <p className="text-sm font-medium font-mono">{ticket.account_number || ticket.accountNumber || "—"}</p>
                 </div>
               </div>
               <Separator />
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Branch</p>
-                  <p className="text-sm">{ticket.branch}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Regional Office</p>
-                  <p className="text-sm">{ticket.regionalOffice}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Assigned To</p>
-                  <p className="text-sm">{ticket.assignedTo}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Created By</p>
-                  <p className="text-sm">{ticket.createdBy}</p>
-                </div>
+              <div className="grid grid-cols-1 gap-3">
+                {ticket.branch && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-0.5">Originating Branch</p>
+                    <p className="text-sm">{ticket.branch}</p>
+                  </div>
+                )}
+                {ticket.regionalOffice && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-0.5">Regional Office</p>
+                    <p className="text-sm">{ticket.regionalOffice}</p>
+                  </div>
+                )}
               </div>
               <Separator />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Created</p>
-                  <p className="text-sm">{new Date(ticket.createdAt).toLocaleDateString("en-IN")}</p>
+                  <p className="text-sm">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString("en-IN") : "—"}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Last Updated</p>
-                  <p className="text-sm">{new Date(ticket.updatedAt).toLocaleDateString("en-IN")}</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Auto-assigned to</p>
+                  <p className="text-sm">{ticket.assignedTo || "System Routing"}</p>
                 </div>
               </div>
             </div>
@@ -174,17 +267,30 @@ export default function TicketDetail() {
 
           {/* Actions */}
           {isOpen && (
-            <div className="rounded-lg bg-card shadow-card p-6">
-              <h2 className="text-base font-medium mb-3">Actions</h2>
+            <div className="rounded-lg bg-card shadow-card p-6 border border-border/50">
+              <h2 className="text-base font-medium mb-3">Workflow Actions</h2>
               <div className="space-y-2">
-                {ticket.status !== "Escalated to HO" && ticket.status !== "Pending at HO" && (
-                  <Button variant="outline" className="w-full justify-start gap-2" onClick={() => toast.success("Ticket escalated to Head Office.")}>
-                    <ArrowUpRight className="h-4 w-4" /> Escalate to Head Office
+                {ticket.status !== "Escalated to HO" && ticket.status !== "Pending at HO" && user?.role === "ro" && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700 text-orange-600 transition-colors" 
+                    onClick={() => escalateMutation.mutate()}
+                    disabled={escalateMutation.isPending}
+                  >
+                    {escalateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />} 
+                    Escalate to Head Office
                   </Button>
                 )}
-                <Button className="w-full justify-start gap-2" onClick={() => toast.success(`Ticket ${ticket.id} resolved and closed.`)}>
-                  <CheckCircle className="h-4 w-4" /> Resolve & Close
-                </Button>
+                {(user?.role === "ho" || user?.role === "admin" || user?.role === "ro") && (
+                  <Button 
+                    className="w-full justify-start gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" 
+                    onClick={() => resolveMutation.mutate()}
+                    disabled={resolveMutation.isPending}
+                  >
+                    {resolveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />} 
+                    Mark as Resolved
+                  </Button>
+                )}
               </div>
             </div>
           )}
