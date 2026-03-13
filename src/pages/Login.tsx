@@ -4,8 +4,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2, Eye, EyeOff, FileText, ClipboardCheck, Search, Settings, Bell } from "lucide-react";
-import logo from "../images/output-onlinepngtools.png";
+import logo from "../images/RRB_LOGO_new.png";
 import bgImage from "../images/login_bg.png";
+import bigLogo from "../images/output-onlinepngtools.png"; 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -97,7 +98,7 @@ export default function Login() {
       <header className="w-full backdrop-blur-sm py-2 px-6 md:px-12 flex flex-col md:flex-row items-center md:justify-start shadow-sm z-10 border-t-4 border-t-[#0056b3] shrink-0">
         <div className="flex items-center justify-center md:justify-center w-full gap-4">
           <img
-            src={logo}
+            src={bigLogo}
             alt="Haryana Gramin Bank Logo"
             className="h-10 md:h-20 w-auto object-contain"
           />
