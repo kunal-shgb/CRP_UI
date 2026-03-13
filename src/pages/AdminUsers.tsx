@@ -18,6 +18,7 @@ import { api } from "@/lib/api";
 const userSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Invalid email address"),
   role: z.enum(["ADMIN", "HEAD_OFFICE", "REGIONAL_OFFICE", "BRANCH"]),
   branchId: z.string().optional(),
   roId: z.string().optional(),
@@ -77,6 +78,7 @@ export default function AdminUsers() {
       const payload: any = {
         username: data.username,
         password: data.password,
+        email: data.email,
         role: data.role,
       };
       if (data.role === "BRANCH" && data.branchId) payload.branchId = parseInt(data.branchId);
@@ -214,6 +216,19 @@ export default function AdminUsers() {
                     <FormLabel>Password *</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="Min 6 characters" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. jdoe@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

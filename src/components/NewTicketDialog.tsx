@@ -59,7 +59,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
     if (ticketType !== "Others" && !utr.trim()) e.utr = "UTR/RRN is required for Transactional tickets";
     if (ticketType !== "Others" && !transactionDate) e.transactionDate = "Transaction date is required";
     if (ticketType !== "Others" && !transactionAmount.trim()) e.transactionAmount = "Transaction amount is required";
-    
+
     if (!account.trim()) e.account = "Account number is required";
     if (!product) e.product = "Product type is required";
     if (!branch) e.branch = "Branch is required";
@@ -70,7 +70,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
 
   const handleSubmit = () => {
     if (!validate()) return;
-    
+
     const payload: any = {
       account_number: account.trim(),
       product_type: product,
@@ -111,15 +111,15 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="utr" className="text-xs font-medium">
-              Unique Transaction Number (UTR/RRN){ticketType !== "Others" && " *"}
-            </Label>
-            <Input id="utr" value={utr} onChange={(e) => setUtr(e.target.value)} placeholder="e.g. 422069019371" />
-            {errors.utr && <p className="text-xs text-destructive">{errors.utr}</p>}
-          </div>
           {ticketType !== "Others" && (
             <>
+              <div className="space-y-1.5">
+                <Label htmlFor="utr" className="text-xs font-medium">
+                  Unique Transaction Number (UTR/RRN){ticketType !== "Others" && " *"}
+                </Label>
+                <Input id="utr" value={utr} onChange={(e) => setUtr(e.target.value)} placeholder="e.g. 422069019371" />
+                {errors.utr && <p className="text-xs text-destructive">{errors.utr}</p>}
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tdate" className="text-xs font-medium">Transaction Date *</Label>
                 <Input id="tdate" type="date" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} />
