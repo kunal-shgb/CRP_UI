@@ -1,5 +1,6 @@
 import { LayoutDashboard, Ticket, Users, Settings, Building2, ChevronLeft } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import logo from "@/images/RRB_LOGO_new.png";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,7 +35,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  
+
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
@@ -44,22 +45,24 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
+      <SidebarHeader className="border-b border-sidebar-border px-1 py-3">
         <div className="flex items-center justify-between">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                <Building2 className="h-4 w-4 text-primary-foreground" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-md">
+                <img src={logo} alt="HGB Logo" className="h-full w-full object-contain" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-sidebar-foreground">CRP</p>
-                <p className="text-[10px] text-muted-foreground tracking-wide">COMPLAINT PORTAL</p>
+                <p className="text-sm font-semibold text-sidebar-foreground">H.G.B</p>
+                <p className="text-[10px] text-muted-foreground tracking-wide">COMPLAINT RESOLUTION PORTAL</p>
               </div>
             </div>
           )}
           {collapsed && (
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary mx-auto">
-              <Building2 className="h-4 w-4 text-primary-foreground" />
+            <div className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md mx-auto">
+                <img src={logo} alt="HGB Logo" className="h-full w-full object-contain" />
+              </div>
             </div>
           )}
         </div>
@@ -131,7 +134,7 @@ export function AppSidebar() {
                 <p className="text-[11px] text-muted-foreground uppercase">{user.role}</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={handleLogout}
               className="p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors"
               title="Logout"
@@ -141,7 +144,7 @@ export function AppSidebar() {
           </div>
         )}
         {collapsed && user && (
-          <div 
+          <div
             className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold uppercase mx-auto cursor-pointer"
             onClick={handleLogout}
             title="Logout"
