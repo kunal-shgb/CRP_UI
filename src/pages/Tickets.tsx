@@ -59,9 +59,9 @@ export default function Tickets() {
 
       const matchStatus = statusFilter === "all" || t.status === statusFilter;
       const matchProduct = productFilter === "all" || productStr === productFilter;
-      const matchRO = roFilter === "all" || t.regionalOffice === roFilter;
+      const matchRegionalOffice = roFilter === "all" || t.regionalOffice === roFilter;
 
-      return matchSearch && matchStatus && matchProduct && matchRO;
+      return matchSearch && matchStatus && matchProduct && matchRegionalOffice;
     });
   }, [tickets, search, statusFilter, productFilter, roFilter]);
 
@@ -104,7 +104,7 @@ export default function Tickets() {
         <Select value={roFilter} onValueChange={setRoFilter}>
           <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="Regional Office" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All ROs</SelectItem>
+            <SelectItem value="all">All Regional Offices</SelectItem>
             {loadingRos ? (
               <SelectItem value="loading" disabled>Loading...</SelectItem>
             ) : (

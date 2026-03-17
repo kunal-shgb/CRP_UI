@@ -29,8 +29,8 @@ export default function Dashboard() {
 
   const openTickets = tickets.filter((t: any) => !["Resolved", "Closed"].includes(t.status));
   const closedTickets = tickets.filter((t: any) => ["Resolved", "Closed"].includes(t.status));
-  const pendingRO = tickets.filter((t: any) => t.status === "Pending at Regional Office").length;
-  const pendingHO = tickets.filter((t: any) => ["Pending at Head Office", "Escalated to Head Office"].includes(t.status)).length;
+  const pendingRegionalOffice = tickets.filter((t: any) => t.status === "Pending at Regional Office").length;
+  const pendingHeadOffice = tickets.filter((t: any) => ["Pending at Head Office", "Escalated to Head Office"].includes(t.status)).length;
 
   const productCounts = tickets.reduce((acc: any, t: any) => {
     acc[t.product] = (acc[t.product] || 0) + 1;
@@ -76,8 +76,8 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard title="Total Open" value={openTickets.length} icon={TicketIcon} subtitle={`${tickets.length} total tickets`} />
             <StatCard title="Resolved / Closed" value={closedTickets.length} icon={CheckCircle} />
-            <StatCard title="Pending at Regional Office" value={pendingRO} icon={Clock} />
-            <StatCard title="Pending / Escalated Head Office" value={pendingHO} icon={AlertTriangle} />
+            <StatCard title="Pending at Regional Office" value={pendingRegionalOffice} icon={Clock} />
+            <StatCard title="Pending / Escalated Head Office" value={pendingHeadOffice} icon={AlertTriangle} />
           </div>
 
           {/* Charts */}

@@ -9,7 +9,7 @@ export interface User {
   username: string;
   role: UserRole;
   branchId?: number;
-  roId?: number;
+  regionalOfficeId?: number;
   iat?: number;
   exp?: number;
 }
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          const res = await api.get<{id: number, username: string, role: string, branchId?: number, roId?: number}>("/auth/profile");
+          const res = await api.get<{id: number, username: string, role: string, branchId?: number, regionalOfficeId?: number}>("/auth/profile");
           const fetchedUser = res.data;
           fetchedUser.role = fetchedUser.role?.toUpperCase() || '';
           setUser(fetchedUser as User);
