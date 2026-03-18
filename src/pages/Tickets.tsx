@@ -23,14 +23,16 @@ export default function Tickets() {
   const [roFilter, setRoFilter] = useState<string>("all");
   const [showNewTicket, setShowNewTicket] = useState(false);
 
+  const isAdminOrHO = user?.role === "ADMIN" || user?.role === "HEAD_OFFICE";
+
   const { data: ros = [], isLoading: loadingRos } = useQuery({
     queryKey: ["ros"],
     queryFn: async () => {
       const res = await api.get("/admin/regionalOffice");
       return res.data;
-    }
+    },
+    enabled: isAdminOrHO,
   });
-  console.log("user", user)
   const endpoint = user?.role === "BRANCH" ? "/tickets/branch"
     : user?.role === "REGIONAL_OFFICE" ? "/tickets/regionalOffice"
       : "/tickets/headOffice"; // for ho and admin
@@ -101,17 +103,19 @@ export default function Tickets() {
             {PRODUCTS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={roFilter} onValueChange={setRoFilter}>
-          <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="Regional Office" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Regional Offices</SelectItem>
-            {loadingRos ? (
-              <SelectItem value="loading" disabled>Loading...</SelectItem>
-            ) : (
-              ros.map((r: any) => <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>)
-            )}
-          </SelectContent>
-        </Select>
+        {isAdminOrHO && (
+          <Select value={roFilter} onValueChange={setRoFilter}>
+            <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="Regional Office" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Regional Offices</SelectItem>
+              {loadingRos ? (
+                <SelectItem value="loading" disabled>Loading...</SelectItem>
+              ) : (
+                ros.map((r: any) => <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>)
+              )}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Table */}

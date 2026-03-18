@@ -21,6 +21,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 const userSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -54,13 +55,16 @@ export default function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
   const queryClient = useQueryClient();
+  const { user: authUser } = useAuth();
+  const isAdmin = authUser?.role === "ADMIN";
 
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
       const res = await api.get("/admin/user");
       return res.data;
-    }
+    },
+    enabled: isAdmin,
   });
 
   const { data: branches = [] } = useQuery({
@@ -68,7 +72,8 @@ export default function AdminUsers() {
     queryFn: async () => {
       const res = await api.get("/admin/branch");
       return res.data;
-    }
+    },
+    enabled: isAdmin,
   });
 
   const { data: ros = [] } = useQuery({
@@ -76,7 +81,8 @@ export default function AdminUsers() {
     queryFn: async () => {
       const res = await api.get("/admin/regionalOffice");
       return res.data;
-    }
+    },
+    enabled: isAdmin,
   });
 
   const form = useForm<UserFormValues>({

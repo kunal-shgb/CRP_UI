@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NewTicketDialogProps {
   open: boolean;
@@ -17,10 +18,15 @@ interface NewTicketDialogProps {
 }
 
 export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
+  const { user } = useAuth();
+  const isBranch = user?.role === "BRANCH";
+  const isRO = user?.role === "REGIONAL_OFFICE";
+
   const [utr, setUtr] = useState("");
   const [account, setAccount] = useState("");
   const [product, setProduct] = useState("");
-  const [branch, setBranch] = useState("");
+  // BRANCH users use their own branchId automatically; only RO users pick a branch
+  const [branch, setBranch] = useState(isBranch ? String(user?.branchId ?? "") : "");
   const [ticketType, setTicketType] = useState("Transactional");
   const [transactionDate, setTransactionDate] = useState("");
   const [transactionAmount, setTransactionAmount] = useState("");
@@ -29,13 +35,15 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
 
   const queryClient = useQueryClient();
 
-  // Fetch branches dynamically
+  // Fetch branches only when dialog is open AND user is REGIONAL_OFFICE
+  // BRANCH users use their own branchId from the auth token — no API needed
   const { data: branches = [] } = useQuery({
     queryKey: ["branches"],
     queryFn: async () => {
       const res = await api.get("/admin/branch");
       return res.data;
-    }
+    },
+    enabled: isRO && open,
   });
 
   const createTicketMutation = useMutation({
@@ -89,7 +97,10 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
   };
 
   const resetForm = () => {
-    setUtr(""); setAccount(""); setProduct(""); setBranch(""); setDescription("");
+    setUtr(""); setAccount(""); setProduct("");
+    // Reset branch: BRANCH users keep their fixed branchId, RO users reset to empty
+    setBranch(isBranch ? String(user?.branchId ?? "") : "");
+    setDescription("");
     setTicketType("Transactional"); setTransactionDate(""); setTransactionAmount("");
     setErrors({});
   };
@@ -147,16 +158,18 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
             </Select>
             {errors.product && <p className="text-xs text-destructive">{errors.product}</p>}
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Branch *</Label>
-            <Select value={branch} onValueChange={setBranch}>
-              <SelectTrigger><SelectValue placeholder="Select branch" /></SelectTrigger>
-              <SelectContent>
-                {branches.map((b: any) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {errors.branch && <p className="text-xs text-destructive">{errors.branch}</p>}
-          </div>
+          {!isBranch && (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Branch *</Label>
+              <Select value={branch} onValueChange={setBranch}>
+                <SelectTrigger><SelectValue placeholder="Select branch" /></SelectTrigger>
+                <SelectContent>
+                  {branches.map((b: any) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {errors.branch && <p className="text-xs text-destructive">{errors.branch}</p>}
+            </div>
+          )}
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="desc" className="text-xs font-medium">Description of Issue *</Label>
             <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Describe the transaction complaint..." className="resize-none" />
