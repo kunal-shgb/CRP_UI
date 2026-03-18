@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,12 +26,24 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
   const [account, setAccount] = useState("");
   const [product, setProduct] = useState("");
   // BRANCH users use their own branchId automatically; only RO users pick a branch
-  const [branch, setBranch] = useState(isBranch ? String(user?.branchId ?? "") : "");
+  const [branch, setBranch] = useState(isBranch ? String(user?.branch ?? "") : "");
   const [ticketType, setTicketType] = useState("Transactional");
   const [transactionDate, setTransactionDate] = useState("");
   const [transactionAmount, setTransactionAmount] = useState("");
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Sync branch state when dialog opens or user data becomes available
+  useEffect(() => {
+    if (open) {
+      console.log("userE", user);
+      if (isBranch && user.branch) {
+        setBranch(String(user.branch));
+      } else if (!isBranch && !branch) {
+        setBranch("");
+      }
+    }
+  }, [open, isBranch, user?.branch]);
 
   const queryClient = useQueryClient();
 
@@ -72,21 +84,27 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
     if (!product) e.product = "Product type is required";
     if (!branch) e.branch = "Branch is required";
     if (!description.trim()) e.description = "Description is required";
+    
     setErrors(e);
+    if (Object.keys(e).length > 0) {
+      console.warn("Ticket validation errors:", e);
+    }
     return Object.keys(e).length === 0;
   };
 
   const handleSubmit = () => {
-    if (!validate()) return;
+    const isValid = validate();
+    console.log("User during submit:", user);
+    console.log("Validation result:", isValid);
+    if (!isValid) return;
 
     const payload: any = {
       account_number: account.trim(),
       product_type: product,
       ticket_type: ticketType,
       description: description.trim(),
-      branchId: branch
+      branch: branch
     };
-
     if (ticketType !== "Others") {
       if (utr.trim()) payload.utr_rrn = utr.trim();
       payload.transaction_date = new Date(transactionDate).toISOString();
@@ -99,7 +117,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
   const resetForm = () => {
     setUtr(""); setAccount(""); setProduct("");
     // Reset branch: BRANCH users keep their fixed branchId, RO users reset to empty
-    setBranch(isBranch ? String(user?.branchId ?? "") : "");
+    setBranch(isBranch ? String(user?.branch ?? "") : "");
     setDescription("");
     setTicketType("Transactional"); setTransactionDate(""); setTransactionAmount("");
     setErrors({});
