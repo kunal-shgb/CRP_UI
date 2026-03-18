@@ -61,7 +61,7 @@ export default function AdminUsers() {
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await api.get("/admin/user");
+      const res = await api.get("/users");
       return res.data;
     },
     enabled: isAdmin,
@@ -70,7 +70,7 @@ export default function AdminUsers() {
   const { data: branches = [] } = useQuery({
     queryKey: ["branches"],
     queryFn: async () => {
-      const res = await api.get("/admin/branch");
+      const res = await api.get("/branches");
       return res.data;
     },
     enabled: isAdmin,
@@ -79,7 +79,7 @@ export default function AdminUsers() {
   const { data: ros = [] } = useQuery({
     queryKey: ["ros"],
     queryFn: async () => {
-      const res = await api.get("/admin/regionalOffice");
+      const res = await api.get("/regional-offices");
       return res.data;
     },
     enabled: isAdmin,
@@ -124,7 +124,7 @@ export default function AdminUsers() {
       if (data.role === "BRANCH" && data.branchId) payload.branchId = parseInt(data.branchId);
       if (data.role === "REGIONAL_OFFICE" && data.regionalOfficeId) payload.regionalOfficeId = parseInt(data.regionalOfficeId);
 
-      const res = await api.post("/admin/user", payload);
+      const res = await api.post("/users", payload);
       return res.data;
     },
     onSuccess: () => {
@@ -149,7 +149,7 @@ export default function AdminUsers() {
       if (data.role === "BRANCH" && data.branchId) payload.branchId = parseInt(data.branchId);
       if (data.role === "REGIONAL_OFFICE" && data.regionalOfficeId) payload.regionalOfficeId = parseInt(data.regionalOfficeId);
 
-      const res = await api.patch(`/admin/user/${selectedUser.id}`, payload);
+      const res = await api.patch(`/users/${selectedUser.id}`, payload);
       return res.data;
     },
     onSuccess: () => {
@@ -165,7 +165,7 @@ export default function AdminUsers() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await api.delete(`/admin/user/${id}`);
+      const res = await api.delete(`/users/${id}`);
       return res.data;
     },
     onSuccess: () => {

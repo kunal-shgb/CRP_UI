@@ -14,16 +14,10 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Each role gets its own scoped tickets endpoint
-  const endpoint =
-    user?.role === "BRANCH"           ? "/tickets/branch"
-    : user?.role === "REGIONAL_OFFICE" ? "/tickets/regionalOffice"
-    : "/tickets/headOffice"; // HEAD_OFFICE and ADMIN both use the head-office view
-
   const { data: tickets = [], isLoading } = useQuery({
-    queryKey: ["tickets", user?.role],
+    queryKey: ["tickets"],
     queryFn: async () => {
-      const res = await api.get(endpoint);
+      const res = await api.get("/tickets");
       return res.data;
     },
     enabled: !!user,

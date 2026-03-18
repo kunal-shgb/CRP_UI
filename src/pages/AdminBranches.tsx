@@ -47,7 +47,7 @@ export default function AdminBranches() {
   const { data: ros = [], isLoading: loadingRos } = useQuery({
     queryKey: ["ros"],
     queryFn: async () => {
-      const res = await api.get("/admin/regionalOffice");
+      const res = await api.get("/regional-offices");
       return res.data;
     }
   });
@@ -55,7 +55,7 @@ export default function AdminBranches() {
   const { data: branches = [], isLoading: loadingBranches } = useQuery({
     queryKey: ["branches"],
     queryFn: async () => {
-      const res = await api.get("/admin/branch");
+      const res = await api.get("/branches");
       return res.data;
     }
   });
@@ -85,7 +85,7 @@ export default function AdminBranches() {
 
   const createRoMutation = useMutation({
     mutationFn: async (data: z.infer<typeof roSchema>) => {
-      const res = await api.post("/admin/regionalOffice", data);
+      const res = await api.post("/regional-offices", data);
       return res.data;
     },
     onSuccess: () => {
@@ -101,7 +101,7 @@ export default function AdminBranches() {
 
   const updateRoMutation = useMutation({
     mutationFn: async (data: z.infer<typeof roSchema>) => {
-      const res = await api.patch(`/admin/regionalOffice/${selectedRo.id}`, data);
+      const res = await api.patch(`/regional-offices/${selectedRo.id}`, data);
       return res.data;
     },
     onSuccess: () => {
@@ -117,7 +117,7 @@ export default function AdminBranches() {
 
   const deleteRoMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await api.delete(`/admin/regionalOffice/${id}`);
+      const res = await api.delete(`/regional-offices/${id}`);
       return res.data;
     },
     onSuccess: () => {
@@ -133,7 +133,7 @@ export default function AdminBranches() {
 
   const createBranchMutation = useMutation({
     mutationFn: async (data: z.infer<typeof branchSchema>) => {
-      const res = await api.post("/admin/branch", {
+      const res = await api.post("/branches", {
         name: data.name,
         code: data.code,
         regionalOfficeId: parseInt(data.regionalOfficeId),
@@ -153,7 +153,7 @@ export default function AdminBranches() {
 
   const updateBranchMutation = useMutation({
     mutationFn: async (data: z.infer<typeof branchSchema>) => {
-      const res = await api.patch(`/admin/branch/${selectedBranch.id}`, {
+      const res = await api.patch(`/branches/${selectedBranch.id}`, {
         name: data.name,
         code: data.code,
         regionalOfficeId: parseInt(data.regionalOfficeId),
@@ -173,7 +173,7 @@ export default function AdminBranches() {
 
   const deleteBranchMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await api.delete(`/admin/branch/${id}`);
+      const res = await api.delete(`/branches/${id}`);
       return res.data;
     },
     onSuccess: () => {

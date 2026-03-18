@@ -28,13 +28,17 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized error globally
+    const status = error.response?.status;
+    if (status === 401) {
+      // Handle unauthorized error globally — clear token and redirect to login
       localStorage.removeItem("token");
-      // Prevent redirecting if already on login page
       if (window.location.pathname !== '/login') {
          window.location.href = "/login";
       }
+    } else if (status === 403) {
+      // Handle forbidden — user is authenticated but lacks permission
+      // Do NOT clear token or redirect; let the calling component handle via onError
+      console.warn("Access denied (403):", error.response?.data?.message || "You don't have permission to perform this action.");
     }
     return Promise.reject(error);
   }

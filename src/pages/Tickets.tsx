@@ -28,19 +28,15 @@ export default function Tickets() {
   const { data: ros = [], isLoading: loadingRos } = useQuery({
     queryKey: ["ros"],
     queryFn: async () => {
-      const res = await api.get("/admin/regionalOffice");
+      const res = await api.get("/regional-offices");
       return res.data;
     },
     enabled: isAdminOrHO,
   });
-  const endpoint = user?.role === "BRANCH" ? "/tickets/branch"
-    : user?.role === "REGIONAL_OFFICE" ? "/tickets/regionalOffice"
-      : "/tickets/headOffice"; // for ho and admin
-
   const { data: tickets = [], isLoading } = useQuery({
-    queryKey: ["tickets", user?.role],
+    queryKey: ["tickets"],
     queryFn: async () => {
-      const res = await api.get(endpoint);
+      const res = await api.get("/tickets");
       return res.data;
     },
     enabled: !!user,
