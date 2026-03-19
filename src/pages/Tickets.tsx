@@ -155,13 +155,22 @@ export default function Tickets() {
                     className="border-b last:border-b-0 cursor-pointer transition-colors duration-150 hover:bg-muted/50"
                   >
                     <td className="px-6 py-3 text-sm font-medium text-primary">TKT-{ticket.id?.toString().padStart(4, '0') || ticket.id}</td>
-                    <td className="px-6 py-3 text-sm font-mono">{ticket.utr_rrn || ticket.utr || "—"}</td>
-                    <td className="px-6 py-3 text-sm">{ticket.product_type || ticket.product || "—"}</td>
+                    <td className="px-6 py-3 text-sm font-mono">{ticket.utr_rrn || "—"}</td>
+                    <td className="px-6 py-3 text-sm">{ticket.product_type || "—"}</td>
                     <td className="px-6 py-3 text-sm">{ticket.branch || "—"}</td>
-                    <td className="px-6 py-3 text-sm">{ticket.regionalOffice || "—"}</td>
-                    <td className="px-6 py-3 text-sm font-mono">{ticket.amount ? `₹${ticket.amount.toLocaleString("en-IN")}` : "—"}</td>
+                    <td className="px-6 py-3 text-sm">{ticket.assigned_regionalOffice.name || "—"}</td>
+                    <td className="px-6 py-3 text-sm font-mono">{ticket.transaction_amount ? `₹${ticket.transaction_amount.toLocaleString("en-IN")}` : "—"}</td>
                     <td className="px-6 py-3"><StatusBadge status={ticket.status || "Open"} /></td>
-                    <td className="px-6 py-3 text-sm text-muted-foreground">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString("en-IN") : "—"}</td>
+                    <td className="px-6 py-3 text-sm text-muted-foreground">
+                      {ticket.created_at ? new Date(ticket.created_at).toLocaleString("en-IN", {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                      }) : "—"}
+                    </td>
                   </tr>
                 ))
               )}
