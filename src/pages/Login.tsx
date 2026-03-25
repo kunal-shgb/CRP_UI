@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2, Eye, EyeOff, FileText, ClipboardCheck, Search, Settings, Bell } from "lucide-react";
-import logo from "../images/RRB_LOGO_new.png";
 import bgImage from "../images/login_bg.png";
 import bigLogo from "../images/output-onlinepngtools.png"; 
 import { Button } from "@/components/ui/button";
@@ -58,13 +57,12 @@ export default function Login() {
       const response = await api.post<{ access_token: string }>("/auth/login", data);
 
       const token = response.data.access_token;
-
       // Fetch user profile immediately after login
       const profileRes = await api.get<User>("/auth/profile", {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      login(token, profileRes.data);
+      login(token, profileRes.data as User);
 
       toast({
         title: "Login successful",

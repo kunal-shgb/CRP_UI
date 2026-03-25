@@ -57,7 +57,11 @@ export default function Tickets() {
 
       const matchStatus = statusFilter === "all" || t.status === statusFilter;
       const matchProduct = productFilter === "all" || productStr === productFilter;
-      const matchRegionalOffice = roFilter === "all" || t.regionalOffice === roFilter;
+      // Regional office can be a string or a nested object from the API
+      const roName = typeof t.assigned_regionalOffice === "object"
+        ? t.assigned_regionalOffice?.name
+        : (t.regionalOffice || "");
+      const matchRegionalOffice = roFilter === "all" || roName === roFilter;
 
       return matchSearch && matchStatus && matchProduct && matchRegionalOffice;
     });
@@ -157,8 +161,8 @@ export default function Tickets() {
                     <td className="px-6 py-3 text-sm font-medium text-primary">TKT-{ticket.id?.toString().padStart(4, '0') || ticket.id}</td>
                     <td className="px-6 py-3 text-sm font-mono">{ticket.utr_rrn || "—"}</td>
                     <td className="px-6 py-3 text-sm">{ticket.product_type || "—"}</td>
-                    <td className="px-6 py-3 text-sm">{ticket.branch || "—"}</td>
-                    <td className="px-6 py-3 text-sm">{ticket.assigned_regionalOffice.name || "—"}</td>
+                    <td className="px-6 py-3 text-sm">{ticket.branch?.name || ticket.branch || "—"}</td>
+                    <td className="px-6 py-3 text-sm">{ticket.assigned_regionalOffice?.name || ticket.regionalOffice || "—"}</td>
                     <td className="px-6 py-3 text-sm font-mono">{ticket.transaction_amount ? `₹${ticket.transaction_amount.toLocaleString("en-IN")}` : "—"}</td>
                     <td className="px-6 py-3"><StatusBadge status={ticket.status || "Open"} /></td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">

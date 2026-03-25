@@ -205,8 +205,8 @@ export default function AdminUsers() {
   const getRoName = (id: number) => ros.find((r: any) => r.id === id)?.name || id;
 
   const getLocationText = (user: any) => {
-    if (user.role === 'branch' && user.branchId) return getBranchName(user.branchId);
-    if (user.role === 'regionalOffice' && user.regionalOfficeId) return getRoName(user.regionalOfficeId);
+    if (user.role === 'BRANCH') return user.branch?.name || getBranchName(user.branchId) || "—";
+    if (user.role === 'REGIONAL_OFFICE') return user.regionalOffice?.name || getRoName(user.regionalOfficeId) || "—";
     return "—";
   };
 

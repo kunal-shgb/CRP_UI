@@ -130,7 +130,7 @@ export default function TicketDetail() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">TKT-{ticketIdStr}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Created by {ticket.createdBy || ticket.author?.username || "System"} on {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
+            Created by {ticket.createdBy || ticket.author?.username || "System"} on {(ticket.created_at || ticket.createdAt) ? new Date(ticket.created_at || ticket.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
           </p>
         </div>
       </div>
@@ -238,16 +238,16 @@ export default function TicketDetail() {
               </div>
               <Separator />
               <div className="grid grid-cols-1 gap-3">
-                {ticket.branch && (
+                {(ticket.branch?.name || ticket.branch) && (
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-0.5">Originating Branch</p>
-                    <p className="text-sm">{ticket.branch}</p>
+                    <p className="text-sm">{ticket.branch?.name || ticket.branch}</p>
                   </div>
                 )}
-                {ticket.regionalOffice && (
+                {(ticket.assigned_regionalOffice?.name || ticket.regionalOffice?.name || ticket.regionalOffice) && (
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-0.5">Regional Office</p>
-                    <p className="text-sm">{ticket.regionalOffice}</p>
+                    <p className="text-sm">{ticket.assigned_regionalOffice?.name || ticket.regionalOffice?.name || ticket.regionalOffice}</p>
                   </div>
                 )}
               </div>
@@ -255,7 +255,7 @@ export default function TicketDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Created</p>
-                  <p className="text-sm">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString("en-IN") : "—"}</p>
+                  <p className="text-sm">{(ticket.created_at || ticket.createdAt) ? new Date(ticket.created_at || ticket.createdAt).toLocaleDateString("en-IN") : "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Auto-assigned to</p>

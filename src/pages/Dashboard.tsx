@@ -29,7 +29,8 @@ export default function Dashboard() {
   const pendingHeadOffice = tickets.filter((t: any) => ["Pending at Head Office", "Escalated to Head Office"].includes(t.status)).length;
 
   const productCounts = tickets.reduce((acc: any, t: any) => {
-    acc[t.product] = (acc[t.product] || 0) + 1;
+    const product = t.product_type || t.product || "Unknown";
+    acc[product] = (acc[product] || 0) + 1;
     return acc;
   }, {});
 
@@ -39,7 +40,8 @@ export default function Dashboard() {
   }));
 
   const roCounts = tickets.reduce((acc: any, t: any) => {
-    const roName = t.regionalOffice || "Unknown";
+    // Support both nested object and flat string for regional office
+    const roName = t.assigned_regionalOffice?.name || t.regionalOffice || "Unknown";
     if (!acc[roName]) acc[roName] = { name: roName, open: 0, closed: 0 };
     if (["Resolved", "Closed"].includes(t.status)) {
       acc[roName].closed += 1;

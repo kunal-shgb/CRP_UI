@@ -8,8 +8,10 @@ export interface User {
   id: number;
   username: string;
   role: UserRole;
-  branch?: string;
-  regionalOffice?: string;
+  branch?: { id: number; name: string } | string;
+  regionalOffice?: { id: number; name: string } | string;
+  branchId?: number;
+  regionalOfficeId?: number;
   iat?: number;
   exp?: number;
 }
@@ -34,8 +36,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const res = await api.get<{id: number, username: string, role: string, branchId?: number, regionalOfficeId?: number}>("/auth/profile");
           const fetchedUser = res.data;
-          fetchedUser.role = fetchedUser.role?.toUpperCase() || '';
-          setUser(fetchedUser as User);
+          // Normalize role to uppercase for consistent comparisons in the UI
+          if (fetchedUser && typeof fetchedUser === "object") {
+            (fetchedUser as any).role = (fetchedUser as any).role?.toUpperCase() || '';
+          }
+          setUser(fetchedUser as unknown as User);
         } catch (error) {
           console.error("Failed to load user profile", error);
           localStorage.removeItem("token");

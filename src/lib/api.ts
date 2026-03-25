@@ -25,6 +25,15 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
+    // Auto-unwrap the backend envelope { data, message, statusCode }
+    // so that all callers can simply use res.data to get the actual payload.
+    if (
+      response.data !== null &&
+      typeof response.data === "object" &&
+      "data" in response.data
+    ) {
+      response.data = response.data.data;
+    }
     return response;
   },
   (error) => {

@@ -26,7 +26,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
   const [account, setAccount] = useState("");
   const [product, setProduct] = useState("");
   // BRANCH users use their own branchId automatically; only RO users pick a branch
-  const [branch, setBranch] = useState(isBranch ? String(user?.branch ?? "") : "");
+  const [branch, setBranch] = useState(isBranch ? String((user as any)?.branchId ?? "") : "");
   const [ticketType, setTicketType] = useState("Transactional");
   const [transactionDate, setTransactionDate] = useState("");
   const [transactionAmount, setTransactionAmount] = useState("");
@@ -37,8 +37,8 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
   useEffect(() => {
     if (open) {
       console.log("userE", user);
-      if (isBranch && user.branch) {
-        setBranch(String(user.branch));
+      if (isBranch && (user as any)?.branchId) {
+        setBranch(String((user as any).branchId));
       } else if (!isBranch && !branch) {
         setBranch("");
       }
@@ -103,7 +103,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
       product_type: product,
       ticket_type: ticketType,
       description: description.trim(),
-      branch: branch
+      branchId: parseInt(branch),
     };
     if (ticketType !== "Others") {
       if (utr.trim()) payload.utr_rrn = utr.trim();
@@ -117,7 +117,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
   const resetForm = () => {
     setUtr(""); setAccount(""); setProduct("");
     // Reset branch: BRANCH users keep their fixed branchId, RO users reset to empty
-    setBranch(isBranch ? String(user?.branch ?? "") : "");
+    setBranch(isBranch ? String((user as any)?.branchId ?? "") : "");
     setDescription("");
     setTicketType("Transactional"); setTransactionDate(""); setTransactionAmount("");
     setErrors({});
