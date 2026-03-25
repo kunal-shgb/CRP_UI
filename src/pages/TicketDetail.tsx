@@ -114,7 +114,7 @@ export default function TicketDetail() {
   // Safe accessors for API payload
   const ticketIdStr = ticket.id?.toString().padStart(4, '0') || ticket.id;
   const auditLogs = ticket.auditTrail || ticket.comments || [];
-
+  console.log("ticket", auditLogs);
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -130,7 +130,7 @@ export default function TicketDetail() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">TKT-{ticketIdStr}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Created by {ticket.createdBy || ticket.author?.username || "System"} on {(ticket.created_at || ticket.createdAt) ? new Date(ticket.created_at || ticket.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
+            Created by {ticket.createdBy || ticket.author?.username || "System"} on {(ticket.created_at || ticket.created_at) ? new Date(ticket.created_at || ticket.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
           </p>
         </div>
       </div>
@@ -162,20 +162,20 @@ export default function TicketDetail() {
                     </div>
                     <div className="pb-6 flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium">{entry.user || entry.author?.username || "System"}</span>
-                        <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase", getRoleColor(entry.role || entry.author?.role))}>
-                          {entry.role || entry.author?.role || "System"}
+                        <span className="text-sm font-medium">{entry.user.username}</span>
+                        <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase", getRoleColor(entry.user.role))}>
+                          {entry.user.role}
                         </span>
                         <span className="text-xs text-muted-foreground ml-auto">
-                          {entry.timestamp || entry.createdAt ? (
+                          {entry.created_at ? (
                             <>
-                              {new Date(entry.timestamp || entry.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · {new Date(entry.timestamp || entry.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                              {new Date(entry.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · {new Date(entry.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                             </>
                           ) : "Recently"}
                         </span>
                       </div>
                       <p className="text-sm font-medium text-foreground/80 mt-0.5">{entry.action || "Comment Added"}</p>
-                      {(entry.note || entry.comment) && <p className="text-sm text-muted-foreground mt-1 bg-muted/30 p-2 rounded-md border border-border/50 mt-2">{entry.note || entry.comment}</p>}
+                      {(entry.comment) && <p className="text-sm text-muted-foreground mt-1 bg-muted/30 p-2 rounded-md border border-border/50 mt-2">{entry.comment}</p>}
                     </div>
                   </div>
                 ))
@@ -255,7 +255,7 @@ export default function TicketDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Created</p>
-                  <p className="text-sm">{(ticket.created_at || ticket.createdAt) ? new Date(ticket.created_at || ticket.createdAt).toLocaleDateString("en-IN") : "—"}</p>
+                  <p className="text-sm">{(ticket.created_at || ticket.created_at) ? new Date(ticket.created_at || ticket.created_at).toLocaleDateString("en-IN") : "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Auto-assigned to</p>

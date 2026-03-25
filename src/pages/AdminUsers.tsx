@@ -23,6 +23,15 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
+export enum ProductType {
+  IMPS = 'IMPS',
+  AEPS = 'AEPS',
+  UPI = 'UPI',
+  ATM = 'ATM',
+  NEFT = 'NEFT',
+  RTGS = 'RTGS',
+}
+
 const userSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().optional().or(z.literal('')),
@@ -30,12 +39,14 @@ const userSchema = z.object({
   role: z.enum(["ADMIN", "HEAD_OFFICE", "REGIONAL_OFFICE", "BRANCH"]),
   branchId: z.string().optional(),
   regionalOfficeId: z.string().optional(),
+  productType: z.string().optional(),
 }).refine(data => {
   if (data.role === "BRANCH" && !data.branchId) return false;
   if (data.role === "REGIONAL_OFFICE" && !data.regionalOfficeId) return false;
+  if (data.role === "HEAD_OFFICE" && !data.productType) return false;
   return true;
 }, {
-  message: "Branch/Regional Office selection is required for this role",
+  message: "Branch/Regional Office/Product selection is required for this role",
   path: ["role"], // This is a general error, but we can assign it to role
 }).refine(data => {
   if (data.password && data.password.length > 0 && data.password.length < 6) return false;
@@ -92,6 +103,7 @@ export default function AdminUsers() {
       password: "",
       role: "BRANCH",
       email: "",
+      productType: "",
     },
   });
 
@@ -105,10 +117,11 @@ export default function AdminUsers() {
         role: selectedUser.role as any,
         branchId: selectedUser.branch?.id?.toString() || "",
         regionalOfficeId: selectedUser.regionalOffice?.id?.toString() || "",
+        productType: selectedUser.productType || "",
         password: "", // don't populate password
       });
     } else if (!showEdit && !showCreate) {
-      form.reset({ username: "", password: "", email: "", role: "BRANCH", branchId: "", regionalOfficeId: "" });
+      form.reset({ username: "", password: "", email: "", role: "BRANCH", branchId: "", regionalOfficeId: "", productType: "" });
     }
   }, [selectedUser, showEdit, showCreate, form]);
 
@@ -123,6 +136,7 @@ export default function AdminUsers() {
       };
       if (data.role === "BRANCH" && data.branchId) payload.branchId = parseInt(data.branchId);
       if (data.role === "REGIONAL_OFFICE" && data.regionalOfficeId) payload.regionalOfficeId = parseInt(data.regionalOfficeId);
+      if (data.role === "HEAD_OFFICE" && data.productType) payload.productType = data.productType;
 
       const res = await api.post("/users", payload);
       return res.data;
@@ -148,6 +162,7 @@ export default function AdminUsers() {
       if (data.password) payload.password = data.password;
       if (data.role === "BRANCH" && data.branchId) payload.branchId = parseInt(data.branchId);
       if (data.role === "REGIONAL_OFFICE" && data.regionalOfficeId) payload.regionalOfficeId = parseInt(data.regionalOfficeId);
+      if (data.role === "HEAD_OFFICE" && data.productType) payload.productType = data.productType;
 
       const res = await api.patch(`/users/${selectedUser.id}`, payload);
       return res.data;
@@ -207,6 +222,7 @@ export default function AdminUsers() {
   const getLocationText = (user: any) => {
     if (user.role === 'BRANCH') return user.branch?.name || getBranchName(user.branchId) || "—";
     if (user.role === 'REGIONAL_OFFICE') return user.regionalOffice?.name || getRoName(user.regionalOfficeId) || "—";
+    if (user.role === 'HEAD_OFFICE') return user.menu || "—";
     return "—";
   };
 
@@ -238,7 +254,7 @@ export default function AdminUsers() {
               <tr className="bg-secondary/50">
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Username</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Branch / Regional Office</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Branch / RO / Product</th>
                 <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
               </tr>
             </thead>
@@ -417,6 +433,31 @@ export default function AdminUsers() {
                         <SelectContent>
                           {ros.map((r: any) => (
                             <SelectItem key={r.id} value={r.id.toString()}>{r.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {roleWatch === "HEAD_OFFICE" && (
+                <FormField
+                  control={form.control}
+                  name="productType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Product Type *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Product Type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.values(ProductType).map((pt) => (
+                            <SelectItem key={pt} value={pt}>{pt}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>

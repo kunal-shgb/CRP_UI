@@ -53,7 +53,7 @@ export function AppSidebar() {
                 <img src={logo} alt="HGB Logo" className="h-full w-full object-contain" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-sidebar-foreground">H.G.B</p>
+                <p className="text-sm font-semibold text-sidebar-foreground">Haryana Gramin Bank</p>
                 <p className="text-[10px] text-muted-foreground tracking-wide">COMPLAINT RESOLUTION PORTAL</p>
               </div>
             </div>
@@ -94,7 +94,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {(user?.role === "ADMIN" || user?.role === "HEAD_OFFICE") && (
+        {(user?.role === "ADMIN") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[11px] font-medium tracking-widest uppercase text-muted-foreground px-2">
               {!collapsed && "Administration"}

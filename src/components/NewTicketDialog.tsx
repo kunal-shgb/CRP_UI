@@ -82,7 +82,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
 
     if (!account.trim()) e.account = "Account number is required";
     if (!product) e.product = "Product type is required";
-    if (!branch) e.branch = "Branch is required";
+    // if (!branch) e.branch = "Branch is required";
     if (!description.trim()) e.description = "Description is required";
     
     setErrors(e);
