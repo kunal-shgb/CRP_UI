@@ -25,22 +25,27 @@ export default function Tickets() {
 
   const isAdminOrHO = user?.role === "ADMIN" || user?.role === "HEAD_OFFICE";
 
-  const { data: ros = [], isLoading: loadingRos } = useQuery({
+  const { data: rosQuery, isLoading: loadingRos } = useQuery({
     queryKey: ["ros"],
     queryFn: async () => {
       const res = await api.get("/regional-offices");
-      return res.data;
+      return { ros: res.data, meta: res.meta };
     },
     enabled: isAdminOrHO,
   });
-  const { data: tickets = [], isLoading } = useQuery({
+  const ros = rosQuery?.ros ?? [];
+  const rosMeta = rosQuery?.meta;
+  
+  const { data: ticketsQuery, isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
       const res = await api.get("/tickets");
-      return res.data;
+      return { tickets: res.data, meta: res.meta };
     },
     enabled: !!user,
   });
+  const tickets = ticketsQuery?.tickets ?? [];
+  const ticketsMeta = ticketsQuery?.meta;
 
   const filtered = useMemo(() => {
     return tickets.filter((t: any) => {

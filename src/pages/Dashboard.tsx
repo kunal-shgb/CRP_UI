@@ -14,19 +14,16 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { data: tickets = [], isLoading } = useQuery({
+  const { data: ticketsQuery, isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
       const res = await api.get("/tickets");
-      return res.data;
+      return { tickets: res.data, meta: res.meta };
     },
     enabled: !!user,
   });
-
-  const openTickets = tickets.filter((t: any) => !["Resolved", "Closed"].includes(t.status));
-  const closedTickets = tickets.filter((t: any) => ["Resolved", "Closed"].includes(t.status));
-  const pendingRegionalOffice = tickets.filter((t: any) => t.status === "Pending at Regional Office").length;
-  const pendingHeadOffice = tickets.filter((t: any) => ["Pending at Head Office", "Escalated to Head Office"].includes(t.status)).length;
+  const tickets = ticketsQuery?.tickets ?? [];
+  const ticketsMeta = ticketsQuery?.meta;
 
   const productCounts = tickets.reduce((acc: any, t: any) => {
     const product = t.product_type || t.product || "Unknown";
@@ -72,10 +69,10 @@ export default function Dashboard() {
         <>
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard title="Total Open" value={openTickets.length} icon={TicketIcon} subtitle={`${tickets.length} total tickets`} />
-            <StatCard title="Resolved / Closed" value={closedTickets.length} icon={CheckCircle} />
-            <StatCard title="Pending at Regional Office" value={pendingRegionalOffice} icon={Clock} />
-            <StatCard title="Pending / Escalated Head Office" value={pendingHeadOffice} icon={AlertTriangle} />
+            <StatCard title="Total Open" value={ticketsMeta.totalOpen} icon={TicketIcon} subtitle={`${tickets.length} total tickets`} />
+            <StatCard title="Resolved / Closed" value={ticketsMeta.totalClosed} icon={CheckCircle} />
+            <StatCard title="Pending at Regional Office" value={ticketsMeta.totalPendingAtRO} icon={Clock} />
+            <StatCard title="Pending / Escalated Head Office" value={ticketsMeta.totalEscalatedAtHO} icon={AlertTriangle} />
           </div>
 
           {/* Charts */}

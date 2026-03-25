@@ -1,5 +1,12 @@
 import axios from "axios";
 
+// Extend AxiosResponse to support the `meta` field from backend envelopes
+declare module "axios" {
+  interface AxiosResponse<T = any> {
+    meta?: Record<string, any>;
+  }
+}
+
 // Default to localhost:3001 if no environment variable is provided
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -32,7 +39,9 @@ api.interceptors.response.use(
       typeof response.data === "object" &&
       "data" in response.data
     ) {
-      response.data = response.data.data;
+      const { data, meta } = response.data;
+      response.data = data;
+      response.meta = meta; // accessible as res.meta in callers
     }
     return response;
   },
