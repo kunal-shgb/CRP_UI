@@ -81,7 +81,7 @@ export default function AdminBranches() {
     } else if (!showBranchEdit && !showBranchCreate) {
       branchForm.reset({ name: "", code: "", regionalOfficeId: "" });
     }
-  }, [selectedRo, showRoEdit, showRoCreate, selectedBranch, showBranchEdit, showBranchCreate, roForm, branchForm]);
+  }, [selectedRo, showRoEdit, showRoCreate, selectedBranch, showBranchEdit, showBranchCreate, roForm.reset, branchForm.reset]);
 
   const createRoMutation = useMutation({
     mutationFn: async (data: z.infer<typeof roSchema>) => {

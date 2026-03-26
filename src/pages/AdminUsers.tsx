@@ -123,7 +123,7 @@ export default function AdminUsers() {
     } else if (!showEdit && !showCreate) {
       form.reset({ username: "", password: "", email: "", role: "BRANCH", branchId: "", regionalOfficeId: "", productType: "" });
     }
-  }, [selectedUser, showEdit, showCreate, form]);
+  }, [selectedUser, showEdit, showCreate, form.reset]);
 
   const createMutation = useMutation({
     mutationFn: async (data: UserFormValues) => {
