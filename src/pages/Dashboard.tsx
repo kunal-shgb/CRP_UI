@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
-const PIE_COLORS = ["hsl(221,83%,53%)", "hsl(38,92%,50%)", "hsl(142,71%,45%)", "hsl(25,95%,53%)", "hsl(280,67%,50%)", "hsl(190,80%,42%)"];
+// const PIE_COLORS = ["hsl(221,83%,53%)", "hsl(38,92%,50%)", "hsl(142,71%,45%)", "hsl(25,95%,53%)", "hsl(280,67%,50%)", "hsl(190,80%,42%)"];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -157,7 +157,7 @@ export default function Dashboard() {
                         <td className="px-6 py-3 text-sm font-mono">{ticket.utr_rrn || ticket.utr || "—"}</td>
                         <td className="px-6 py-3 text-sm">{ticket.product_type || ticket.product || "—"}</td>
                         <td className="px-6 py-3 text-sm font-mono">{ticket.account_number || ticket.accountNumber || "—"}</td>
-                        <td className="px-6 py-3"><StatusBadge status={ticket.status || "Open"} /></td>
+                        <td className="px-6 py-3"><StatusBadge status={ticket.status} /></td>
                       </tr>
                     ))
                   )}
