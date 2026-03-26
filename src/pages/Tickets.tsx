@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
-const STATUSES: TicketStatus[] = ["Pending at Head Office", "Escalated to Head Office", "Resolved", "Closed", "Pending at Regional Office"];
+const STATUSES: TicketStatus[] = ["PENDING_AT_RO", "ESCALATED_TO_HEAD_OFFICE", "CLOSED"];
 
 export default function Tickets() {
   const navigate = useNavigate();

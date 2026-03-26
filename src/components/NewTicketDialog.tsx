@@ -76,15 +76,26 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (ticketType !== "Others" && !utr.trim()) e.utr = "UTR/RRN is required for Transactional tickets";
-    if (ticketType !== "Others" && !transactionDate) e.transactionDate = "Transaction date is required";
-    if (ticketType !== "Others" && !transactionAmount.trim()) e.transactionAmount = "Transaction amount is required";
+    if (ticketType !== "Others") {
+      if (!utr.trim()) {
+        e.utr = "UTR/RRN is required for Transactional tickets";
+      } else if (product) {
+        const utrLength = utr.trim().length;
+        if (["UPI", "IMPS", "ATM", "AEPS", "RTGS"].includes(product) && utrLength !== 12) {
+          e.utr = `UTR/RRN must be exactly 12 characters for ${product}`;
+        } else if (product === "NEFT" && utrLength !== 16) {
+          e.utr = "UTR/RRN must be exactly 16 characters for NEFT";
+        }
+      }
+      if (!transactionDate) e.transactionDate = "Transaction date is required";
+      if (!transactionAmount.trim()) e.transactionAmount = "Transaction amount is required";
+    }
 
     if (!account.trim()) e.account = "Account number is required";
     if (!product) e.product = "Product type is required";
     // if (!branch) e.branch = "Branch is required";
     if (!description.trim()) e.description = "Description is required";
-    
+
     setErrors(e);
     if (Object.keys(e).length > 0) {
       console.warn("Ticket validation errors:", e);
@@ -140,13 +151,29 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium">Product Type *</Label>
+            <Select value={product} onValueChange={setProduct}>
+              <SelectTrigger><SelectValue placeholder="Select product" /></SelectTrigger>
+              <SelectContent>
+                {PRODUCTS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {errors.product && <p className="text-xs text-destructive">{errors.product}</p>}
+          </div>
           {ticketType !== "Others" && (
             <>
               <div className="space-y-1.5">
                 <Label htmlFor="utr" className="text-xs font-medium">
                   Unique Transaction Number (UTR/RRN){ticketType !== "Others" && " *"}
                 </Label>
-                <Input id="utr" value={utr} onChange={(e) => setUtr(e.target.value)} placeholder="e.g. 422069019371" />
+                <Input 
+                  id="utr" 
+                  value={utr} 
+                  onChange={(e) => setUtr(e.target.value)} 
+                  placeholder="e.g. 422069019371" 
+                  maxLength={product === "NEFT" ? 16 : (product ? 12 : undefined)}
+                />
                 {errors.utr && <p className="text-xs text-destructive">{errors.utr}</p>}
               </div>
               <div className="space-y-1.5">
@@ -165,16 +192,6 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
             <Label htmlFor="account" className="text-xs font-medium">Customer Account Number *</Label>
             <Input id="account" value={account} onChange={(e) => setAccount(e.target.value)} placeholder="e.g. 1234567890" />
             {errors.account && <p className="text-xs text-destructive">{errors.account}</p>}
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Product Type *</Label>
-            <Select value={product} onValueChange={setProduct}>
-              <SelectTrigger><SelectValue placeholder="Select product" /></SelectTrigger>
-              <SelectContent>
-                {PRODUCTS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {errors.product && <p className="text-xs text-destructive">{errors.product}</p>}
           </div>
           {!isBranch && (
             <div className="space-y-1.5">
