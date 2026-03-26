@@ -80,14 +80,29 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
       if (!utr.trim()) {
         e.utr = "UTR/RRN is required for Transactional tickets";
       } else if (product) {
-        const utrLength = utr.trim().length;
-        if (["UPI", "IMPS", "ATM", "AEPS", "RTGS"].includes(product) && utrLength !== 12) {
-          e.utr = `UTR/RRN must be exactly 12 characters for ${product}`;
-        } else if (product === "NEFT" && utrLength !== 16) {
-          e.utr = "UTR/RRN must be exactly 16 characters for NEFT";
+        const utrValue = utr.trim();
+        const utrLength = utrValue.length;
+        const isNumeric = /^\d+$/.test(utrValue);
+
+        if (["UPI", "IMPS", "ATM", "AEPS"].includes(product)) {
+          if (utrLength !== 12 || !isNumeric) {
+            e.utr = `UTR/RRN must be exactly 12 numeric digits for ${product}`;
+          }
+        } else if (product === "RTGS") {
+          if (utrLength !== 12) {
+            e.utr = "UTR/RRN must be exactly 12 characters for RTGS";
+          }
+        } else if (product === "NEFT") {
+          if (utrLength !== 16) {
+            e.utr = "UTR/RRN must be exactly 16 characters for NEFT";
+          }
         }
       }
-      if (!transactionDate) e.transactionDate = "Transaction date is required";
+      if (!transactionDate) {
+        e.transactionDate = "Transaction date is required";
+      } else if (transactionDate > new Date().toISOString().split("T")[0]) {
+        e.transactionDate = "Future dates are not allowed";
+      }
       if (!transactionAmount.trim()) e.transactionAmount = "Transaction amount is required";
     }
 
@@ -178,7 +193,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="tdate" className="text-xs font-medium">Transaction Date *</Label>
-                <Input id="tdate" type="date" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} />
+                <Input id="tdate" type="date" value={transactionDate} max={new Date().toISOString().split("T")[0]} onChange={(e) => setTransactionDate(e.target.value)} />
                 {errors.transactionDate && <p className="text-xs text-destructive">{errors.transactionDate}</p>}
               </div>
               <div className="space-y-1.5">

@@ -225,7 +225,7 @@ export default function TicketDetail() {
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Amount</p>
-                  <p className="text-sm font-medium font-mono">{ticket.amount ? `₹${ticket.amount.toLocaleString("en-IN")}` : "—"}</p>
+                  <p className="text-sm font-medium font-mono">{ticket.transaction_amount ? `₹${ticket.transaction_amount.toLocaleString("en-IN")}` : "—"}</p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">UTR / RRN</p>
