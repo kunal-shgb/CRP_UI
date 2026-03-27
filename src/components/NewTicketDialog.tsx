@@ -31,6 +31,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
   const [transactionDate, setTransactionDate] = useState("");
   const [transactionAmount, setTransactionAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [files, setFiles] = useState<FileList | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Sync branch state when dialog opens or user data becomes available
@@ -137,7 +138,29 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
       payload.transaction_amount = Number(transactionAmount);
     }
 
-    createTicketMutation.mutate(payload);
+    createTicketMutation.mutate(payload, {
+      onSuccess: async (data) => {
+        if (files && files.length > 0) {
+          const ticketId = data.id;
+          for (let i = 0; i < files.length; i++) {
+            const formData = new FormData();
+            formData.append('file', files[i]);
+            try {
+              await api.post(`/tickets/${ticketId}/attachments`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              });
+            } catch (error) {
+              console.error("Failed to upload file:", files[i].name, error);
+              toast.error(`Failed to upload ${files[i].name}`);
+            }
+          }
+        }
+        toast.success("Ticket created successfully.");
+        queryClient.invalidateQueries({ queryKey: ["tickets"] });
+        onOpenChange(false);
+        resetForm();
+      }
+    });
   };
 
   const resetForm = () => {
@@ -147,6 +170,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
     setDescription("");
     setTicketType("Transactional"); setTransactionDate(""); setTransactionAmount("");
     setErrors({});
+    setFiles(null);
   };
 
   return (
@@ -227,7 +251,22 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label className="text-xs font-medium">Supporting Documents</Label>
-            <Input type="file" multiple className="text-sm" />
+            <Input 
+              type="file" 
+              multiple 
+              className="text-sm" 
+              onChange={(e) => setFiles(e.target.files)}
+            />
+            {files && files.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {Array.from(files).map((f, i) => (
+                  <p key={i} className="text-[11px] text-muted-foreground flex items-center gap-1">
+                    <span className="truncate max-w-[200px]">{f.name}</span>
+                    <span>({(f.size / 1024).toFixed(1)} KB)</span>
+                  </p>
+                ))}
+              </div>
+            )}
             <p className="text-[11px] text-muted-foreground">Upload screenshots or documents (max 10MB each)</p>
           </div>
         </div>

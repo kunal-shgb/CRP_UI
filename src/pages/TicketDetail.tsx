@@ -11,13 +11,16 @@ import { Separator } from "@/components/ui/separator";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRef } from "react";
 
 export default function TicketDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+   const { user } = useAuth();
   const [comment, setComment] = useState("");
+  const [commentFiles, setCommentFiles] = useState<FileList | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["ticket", id],
@@ -108,7 +111,39 @@ export default function TicketDetail() {
 
   const handleAddComment = () => {
     if (!comment.trim()) return;
-    commentMutation.mutate(comment);
+    commentMutation.mutate(comment, {
+      onSuccess: async (data) => {
+        if (commentFiles && commentFiles.length > 0) {
+          const commentId = data.id;
+          for (let i = 0; i < commentFiles.length; i++) {
+            const formData = new FormData();
+            formData.append('file', commentFiles[i]);
+            formData.append('commentId', String(commentId));
+            try {
+              await api.post(`/tickets/${id}/attachments`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              });
+            } catch (error) {
+              console.error("Failed to upload comment file:", commentFiles[i].name, error);
+            }
+          }
+        }
+        setCommentFiles(null);
+        queryClient.invalidateQueries({ queryKey: ["ticket", id] });
+      }
+    });
+  };
+
+  const handleDownload = (fileUrl: string, fileName: string) => {
+    const filename = fileUrl.split(/[\\/]/).pop();
+    const downloadUrl = `${api.defaults.baseURL}/tickets/download/${filename}`;
+    // Create a temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Safe accessors for API payload
@@ -142,6 +177,27 @@ export default function TicketDetail() {
           <div className="rounded-lg bg-card shadow-card p-6 border border-border/50">
             <h2 className="text-base font-medium mb-3">Complaint Details</h2>
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{ticket.description}</p>
+            
+            {/* Ticket Level Attachments */}
+            {ticket.attachments?.filter((a: any) => !a.comment).length > 0 && (
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Attached Documents</h3>
+                <div className="flex flex-wrap gap-2">
+                  {ticket.attachments.filter((a: any) => !a.comment).map((attachment: any) => (
+                    <Button 
+                      key={attachment.id} 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 gap-1.5 text-xs"
+                      onClick={() => handleDownload(attachment.file_url, attachment.file_name)}
+                    >
+                      <Paperclip className="h-3 w-3" />
+                      {attachment.file_name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Audit Trail / Comments */}
@@ -176,6 +232,21 @@ export default function TicketDetail() {
                       </div>
                       <p className="text-sm font-medium text-foreground/80 mt-0.5">{entry.action || "Comment Added"}</p>
                       {(entry.comment) && <p className="text-sm text-muted-foreground mt-1 bg-muted/30 p-2 rounded-md border border-border/50 mt-2">{entry.comment}</p>}
+                      
+                      {entry.attachments && entry.attachments.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {entry.attachments.map((attachment: any) => (
+                            <button
+                              key={attachment.id}
+                              onClick={() => handleDownload(attachment.file_url, attachment.file_name)}
+                              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline bg-primary/5 px-2 py-1 rounded"
+                            >
+                              <Paperclip className="h-3 w-3" />
+                              {attachment.file_name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -195,8 +266,31 @@ export default function TicketDetail() {
                 className="resize-none mb-3"
                 disabled={commentMutation.isPending}
               />
+              {commentFiles && commentFiles.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {Array.from(commentFiles).map((f, i) => (
+                    <div key={i} className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded text-xs text-muted-foreground">
+                      <Paperclip className="h-3 w-3" />
+                      <span className="truncate max-w-[150px]">{f.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="gap-1.5" disabled={true} title="Attachment feature coming soon">
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={(e) => setCommentFiles(e.target.files)}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-1.5" 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={commentMutation.isPending}
+                >
                   <Paperclip className="h-3.5 w-3.5" /> Attach File
                 </Button>
                 <Button size="sm" onClick={handleAddComment} className="gap-1.5 ml-auto" disabled={commentMutation.isPending || !comment.trim()}>
