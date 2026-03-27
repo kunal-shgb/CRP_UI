@@ -134,16 +134,26 @@ export default function TicketDetail() {
     });
   };
 
-  const handleDownload = (fileUrl: string, fileName: string) => {
-    const filename = fileUrl.split(/[\\/]/).pop();
-    const downloadUrl = `${api.defaults.baseURL}/tickets/download/${filename}`;
-    // Create a temporary link and trigger download
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.setAttribute('download', fileName);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (fileUrl: string, fileName: string) => {
+    try {
+      const filename = fileUrl.split(/[\\/]/).pop();
+      // Use api instance to include the Authorization header
+      const response = await api.get(`/tickets/download/${filename}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error("Failed to download file. Please check your permissions.");
+      console.error("Download error:", error);
+    }
   };
 
   // Safe accessors for API payload
