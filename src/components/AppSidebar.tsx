@@ -130,8 +130,8 @@ export function AppSidebar() {
                 {user.username.substring(0, 2)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-sidebar-foreground capitalize">{user.username}</p>
-                <p className="text-[11px] text-muted-foreground uppercase">{user.role}</p>
+                <p className="text-sm font-medium truncate text-sidebar-foreground capitalize">{user.branch?.name}</p>
+                <p className="text-[11px] text-muted-foreground uppercase">{user.branch?.code}</p>
               </div>
             </div>
             <button

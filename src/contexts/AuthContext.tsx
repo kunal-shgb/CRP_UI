@@ -8,8 +8,8 @@ export interface User {
   id: number;
   username: string;
   role: UserRole;
-  branch?: { id: number; name: string } | string;
-  regionalOffice?: { id: number; name: string } | string;
+  branch?: { id: number; name: string; code: string };
+  regionalOffice?: { id: number; name: string; code: string };
   branchId?: number;
   regionalOfficeId?: number;
   iat?: number;

@@ -357,7 +357,7 @@ export default function TicketDetail() {
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Auto-assigned to</p>
-                  <p className="text-sm">{ticket.assigned_regionalOffice?.name || "System Routing"}</p>
+                  <p className="text-sm">{ticket.assigned_regionalOffice?.name ? `RO - ${ticket.assigned_regionalOffice?.name}` : 'Head Office'}</p>
                 </div>
               </div>
             </div>
