@@ -158,8 +158,8 @@ export default function TicketDetail() {
 
   // Safe accessors for API payload
   const ticketIdStr = ticket.id?.toString().padStart(4, '0') || ticket.id;
-  const auditLogs = ticket.auditTrail || ticket.comments || [];
-  console.log("ticket", auditLogs);
+  const auditLogs = ticket.comments || [];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -175,7 +175,7 @@ export default function TicketDetail() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">TKT-{ticketIdStr}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Created by {ticket.createdBy || ticket.author?.username || "System"} on {(ticket.created_at || ticket.created_at) ? new Date(ticket.created_at || ticket.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
+            Created by {ticket.created_by.username || "System"} on {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
           </p>
         </div>
       </div>
@@ -240,9 +240,9 @@ export default function TicketDetail() {
                           ) : "Recently"}
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-foreground/80 mt-0.5">{entry.action || "Comment Added"}</p>
-                      {(entry.comment) && <p className="text-sm text-muted-foreground mt-1 bg-muted/30 p-2 rounded-md border border-border/50 mt-2">{entry.comment}</p>}
-                      
+                      {/* <p className="text-sm font-medium text-foreground/80 mt-0.5">{entry.action || "Comment Added"}</p> */}
+                      {(entry.comment) && <p className="text-sm text-muted-foreground mt-1 /30 p-2 rounded-md border border-border/50 mt-2">{entry.comment}</p>}
+                      {/* text-sm leading-relaxed whitespace-pre-wrap */}
                       {entry.attachments && entry.attachments.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2">
                           {entry.attachments.map((attachment: any) => (
@@ -325,7 +325,7 @@ export default function TicketDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Product</p>
-                  <p className="text-sm font-medium">{ticket.product_type || ticket.product || "—"}</p>
+                  <p className="text-sm font-medium">{ticket.product_type || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Amount</p>
@@ -333,25 +333,19 @@ export default function TicketDetail() {
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">UTR / RRN</p>
-                  <p className="text-sm font-medium font-mono bg-muted/50 p-1.5 rounded inline-block">{ticket.utr_rrn || ticket.utr || "—"}</p>
+                  <p className="text-sm font-medium font-mono bg-muted/50 p-1.5 rounded inline-block">{ticket.utr_rrn || "—"}</p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Account Number</p>
-                  <p className="text-sm font-medium font-mono">{ticket.account_number || ticket.accountNumber || "—"}</p>
+                  <p className="text-sm font-medium font-mono">{ticket.account_number || "—"}</p>
                 </div>
               </div>
               <Separator />
               <div className="grid grid-cols-1 gap-3">
-                {(ticket.branch?.name || ticket.branch) && (
+                {(ticket.created_by?.username) && (
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-0.5">Originating Branch</p>
-                    <p className="text-sm">{ticket.branch?.name || ticket.branch}</p>
-                  </div>
-                )}
-                {(ticket.assigned_regionalOffice?.name || ticket.regionalOffice?.name || ticket.regionalOffice) && (
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-0.5">Regional Office</p>
-                    <p className="text-sm">{ticket.assigned_regionalOffice?.name || ticket.regionalOffice?.name || ticket.regionalOffice}</p>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-0.5">Created By</p>
+                    <p className="text-sm">{ticket.created_by?.username}</p>
                   </div>
                 )}
               </div>
@@ -359,11 +353,11 @@ export default function TicketDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Created</p>
-                  <p className="text-sm">{(ticket.created_at || ticket.created_at) ? new Date(ticket.created_at || ticket.created_at).toLocaleDateString("en-IN") : "—"}</p>
+                  <p className="text-sm">{ticket.created_at ? new Date(ticket.created_at).toLocaleDateString("en-IN") : "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Auto-assigned to</p>
-                  <p className="text-sm">{ticket.assignedTo || "System Routing"}</p>
+                  <p className="text-sm">{ticket.assigned_regionalOffice?.name || "System Routing"}</p>
                 </div>
               </div>
             </div>
