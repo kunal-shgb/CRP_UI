@@ -25,7 +25,8 @@ const mainNav = [
 
 const adminNav = [
   { title: "User Management", url: "/admin/users", icon: Users },
-  { title: "Branch Mapping", url: "/admin/branches", icon: Building2 },
+  { title: "Regional Offices", url: "/admin/regional-offices", icon: Building2 },
+  { title: "Branch Offices", url: "/admin/branches", icon: Building2 },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 

@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { DataTablePagination } from "@/components/DataTablePagination";
 
 const STATUSES: TicketStatus[] = ["PENDING_AT_RO", "ESCALATED_TO_HEAD_OFFICE", "CLOSED"];
 
@@ -18,6 +19,8 @@ export default function Tickets() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [productFilter, setProductFilter] = useState<string>("all");
   const [roFilter, setRoFilter] = useState<string>("all");
@@ -26,18 +29,27 @@ export default function Tickets() {
   const isAdminOrHO = user?.role === "ADMIN" || user?.role === "HEAD_OFFICE";
 
   const { data: ros = [], isLoading: loadingRos } = useQuery({
-    queryKey: ["ros"],
+    queryKey: ["ros-all"],
     queryFn: async () => {
-      const res = await api.get("/regional-offices");
+      const res = await api.get("/regional-offices", { params: { limit: 100 } });
       return res.data;
     },
     enabled: isAdminOrHO,
   });
   
   const { data: ticketsQuery, isLoading } = useQuery({
-    queryKey: ["tickets"],
+    queryKey: ["tickets", page, limit, search, statusFilter, productFilter, roFilter],
     queryFn: async () => {
-      const res = await api.get("/tickets");
+      const res = await api.get("/tickets", {
+        params: { 
+          page, 
+          limit, 
+          search: search || undefined,
+          status: statusFilter === "all" ? undefined : statusFilter,
+          productType: productFilter === "all" ? undefined : productFilter,
+          regionalOfficeId: roFilter === "all" ? undefined : roFilter
+        }
+      });
       return { tickets: res.data, meta: res.meta };
     },
     enabled: !!user,
@@ -45,30 +57,7 @@ export default function Tickets() {
   const tickets = ticketsQuery?.tickets ?? [];
   const ticketsMeta = ticketsQuery?.meta;
 
-  const filtered = useMemo(() => {
-    return tickets.filter((t: any) => {
-      const ticketIdStr = t.id?.toString() || "";
-      const utrStr = t.utr_rrn || t.utr || "";
-      const accountStr = t.account_number || t.accountNumber || "";
-      const productStr = t.product_type || t.product || "";
-
-      const searchLower = search.toLowerCase();
-      const matchSearch = !search ||
-        ticketIdStr.toLowerCase().includes(searchLower) ||
-        utrStr.toLowerCase().includes(searchLower) ||
-        accountStr.toLowerCase().includes(searchLower);
-
-      const matchStatus = statusFilter === "all" || t.status === statusFilter;
-      const matchProduct = productFilter === "all" || productStr === productFilter;
-      // Regional office can be a string or a nested object from the API
-      const roName = typeof t.assigned_regionalOffice === "object"
-        ? t.assigned_regionalOffice?.name
-        : (t.regionalOffice || "");
-      const matchRegionalOffice = roFilter === "all" || roName === roFilter;
-
-      return matchSearch && matchStatus && matchProduct && matchRegionalOffice;
-    });
-  }, [tickets, search, statusFilter, productFilter, roFilter]);
+  // Server-side filtering is used now
 
   return (
     <motion.div
@@ -114,7 +103,7 @@ export default function Tickets() {
               {loadingRos ? (
                 <SelectItem value="loading" disabled>Loading...</SelectItem>
               ) : (
-                ros.map((r: any) => <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>)
+                ros.map((r: any) => <SelectItem key={r.id} value={r.id.toString()}>{r.name}</SelectItem>)
               )}
             </SelectContent>
           </Select>
@@ -145,7 +134,7 @@ export default function Tickets() {
                     <p className="text-sm text-muted-foreground">Loading tickets...</p>
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : tickets.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <p className="text-sm text-muted-foreground">No tickets found.</p>
@@ -155,7 +144,7 @@ export default function Tickets() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((ticket: any) => (
+                tickets.map((ticket: any) => (
                   <tr
                     key={ticket.id}
                     onClick={() => navigate(`/tickets/${ticket.id}`)}
@@ -184,6 +173,11 @@ export default function Tickets() {
             </tbody>
           </table>
         </div>
+        <DataTablePagination
+          meta={ticketsMeta as any}
+          onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1); }}
+        />
       </div>
 
       <NewTicketDialog open={showNewTicket} onOpenChange={setShowNewTicket} />

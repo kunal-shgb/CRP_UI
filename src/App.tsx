@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Tickets from "./pages/Tickets";
 import TicketDetail from "./pages/TicketDetail";
 import AdminUsers from "./pages/AdminUsers";
+import AdminRegionalOffices from "./pages/AdminRegionalOffices";
 import AdminBranches from "./pages/AdminBranches";
 import AdminSettings from "./pages/AdminSettings";
 import NotFound from "./pages/NotFound";
@@ -36,6 +37,7 @@ const App = () => (
                 {/* Admin only routes */}
                 <Route element={<ProtectedRoute allowedRoles={["ADMIN", "HEAD_OFFICE"]} />}>
                   <Route path="/admin/users" element={<AdminUsers />} />
+                  <Route path="/admin/regional-offices" element={<AdminRegionalOffices />} />
                   <Route path="/admin/branches" element={<AdminBranches />} />
                   <Route path="/admin/settings" element={<AdminSettings />} />
                 </Route>

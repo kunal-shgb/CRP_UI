@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { DataTablePagination } from "@/components/DataTablePagination";
 
 export enum ProductType {
   IMPS = 'IMPS',
@@ -60,6 +61,8 @@ type UserFormValues = z.infer<typeof userSchema>;
 
 export default function AdminUsers() {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -69,14 +72,19 @@ export default function AdminUsers() {
   const { user: authUser } = useAuth();
   const isAdmin = authUser?.role === "ADMIN";
 
-  const { data: users = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ["users"],
+  const { data: userData, isLoading: loadingUsers } = useQuery({
+    queryKey: ["users", page, limit, search],
     queryFn: async () => {
-      const res = await api.get("/users");
-      return res.data;
+      const res = await api.get("/users", {
+        params: { page, limit, search: search || undefined }
+      });
+      return { users: res.data, meta: res.meta };
     },
     enabled: isAdmin,
   });
+
+  const users = userData?.users || [];
+  const meta = userData?.meta;
 
   const { data: branches = [] } = useQuery({
     queryKey: ["branches"],
@@ -202,9 +210,7 @@ export default function AdminUsers() {
     }
   };
 
-  const filtered = users.filter((u: any) =>
-    !search || u.username.toLowerCase().includes(search.toLowerCase())
-  );
+  // Server-side filtering is now used, so we don't need 'filtered'
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -266,14 +272,14 @@ export default function AdminUsers() {
                     Loading users...
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
                     No users found.
                   </td>
                 </tr>
               ) : (
-                filtered.map((user: any) => (
+                users.map((user: any) => (
                   <tr key={user.id} className="border-b last:border-b-0 transition-colors hover:bg-muted/50">
                     <td className="px-6 py-3 text-sm font-medium">{user.username}</td>
                     <td className="px-6 py-3">
@@ -314,6 +320,11 @@ export default function AdminUsers() {
             </tbody>
           </table>
         </div>
+        <DataTablePagination
+          meta={meta as any}
+          onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1); }}
+        />
       </div>
 
       <Dialog open={showCreate || showEdit} onOpenChange={(open) => {
