@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Loader2, Edit, Trash2, Building2 } from "lucide-react";
+import { Plus, Loader2, Edit, Trash2, Building2, Search } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,6 +33,7 @@ export default function AdminRegionalOffices() {
   
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState("");
   
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -40,10 +41,10 @@ export default function AdminRegionalOffices() {
   const [selectedRo, setSelectedRo] = useState<any>(null);
 
   const { data: roData, isLoading } = useQuery({
-    queryKey: ["ros", page, limit],
+    queryKey: ["ros", page, limit, search],
     queryFn: async () => {
       const res = await api.get("/regional-offices", {
-        params: { page, limit }
+        params: { page, limit, search: search || undefined }
       });
       return { ros: res.data, meta: res.meta };
     }
@@ -130,6 +131,18 @@ export default function AdminRegionalOffices() {
         <Button onClick={() => setShowCreate(true)} className="gap-1.5">
           <Plus className="h-4 w-4" /> Add Regional Office
         </Button>
+      </div>
+
+      <div className="flex items-center gap-3 mb-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search regional offices by name or code..." 
+            value={search} 
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }} 
+            className="pl-9 h-9" 
+          />
+        </div>
       </div>
 
       <div className="rounded-lg bg-card shadow-card overflow-hidden">

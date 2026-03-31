@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Loader2, Edit, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, Loader2, Edit, Trash2, ArrowLeft, Search } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +36,7 @@ export default function AdminBranches() {
   
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState("");
   
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -54,12 +55,13 @@ export default function AdminBranches() {
   });
 
   const { data: branchData, isLoading } = useQuery({
-    queryKey: ["branches", page, limit, roIdParam],
+    queryKey: ["branches", page, limit, search, roIdParam],
     queryFn: async () => {
       const res = await api.get("/branches", {
         params: { 
           page, 
           limit, 
+          search: search || undefined,
           regionalOfficeId: roIdParam || undefined 
         }
       });
@@ -173,6 +175,18 @@ export default function AdminBranches() {
           <Button onClick={() => setShowCreate(true)} className="gap-1.5">
             <Plus className="h-4 w-4" /> Add Branch
           </Button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 mb-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search branches by name or code..." 
+            value={search} 
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }} 
+            className="pl-9 h-9" 
+          />
         </div>
       </div>
 
