@@ -131,8 +131,24 @@ export function AppSidebar() {
                 {user.username.substring(0, 2)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-sidebar-foreground capitalize">{user.branch?.name}</p>
-                <p className="text-[11px] text-muted-foreground uppercase">{user.branch?.code}</p>
+                <p className="text-sm font-medium truncate text-sidebar-foreground capitalize">
+                  {user.role === "BRANCH" 
+                    ? user.branch?.name 
+                    : user.role === "REGIONAL_OFFICE" 
+                    ? user.regionalOffice?.name 
+                    : user.role === "HEAD_OFFICE" 
+                    ? "Head Office" 
+                    : "Administrator"}
+                </p>
+                <p className="text-[11px] text-muted-foreground uppercase">
+                  {user.role === "BRANCH" 
+                    ? user.branch?.code 
+                    : user.role === "REGIONAL_OFFICE" 
+                    ? user.regionalOffice?.code 
+                    : user.role === "HEAD_OFFICE" 
+                    ? user.productType 
+                    : "Admin"}
+                </p>
               </div>
             </div>
             <button

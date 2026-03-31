@@ -12,6 +12,7 @@ export interface User {
   regionalOffice?: { id: number; name: string; code: string };
   branchId?: number;
   regionalOfficeId?: number;
+  productType?: string;
   iat?: number;
   exp?: number;
 }
