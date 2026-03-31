@@ -90,8 +90,8 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
             e.utr = `UTR/RRN must be exactly 12 numeric digits for ${product}`;
           }
         } else if (product === "RTGS") {
-          if (utrLength !== 12) {
-            e.utr = "UTR/RRN must be exactly 12 characters for RTGS";
+          if (utrLength !== 22) {
+            e.utr = "UTR/RRN must be exactly 22 characters for RTGS";
           }
         } else if (product === "NEFT") {
           if (utrLength !== 16) {
@@ -107,7 +107,11 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
       if (!transactionAmount.trim()) e.transactionAmount = "Transaction amount is required";
     }
 
-    if (!account.trim()) e.account = "Account number is required";
+    if (!account.trim()) {
+      e.account = "Account number is required";
+    } else if (account.trim().length !== 11 && account.trim().length !== 14) {
+      e.account = "Account number must be either 11 or 14 digits";
+    }
     if (!product) e.product = "Product type is required";
     // if (!branch) e.branch = "Branch is required";
     if (!description.trim()) e.description = "Description is required";
@@ -229,7 +233,13 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
           )}
           <div className="space-y-1.5">
             <Label htmlFor="account" className="text-xs font-medium">Customer Account Number *</Label>
-            <Input id="account" value={account} onChange={(e) => setAccount(e.target.value)} placeholder="e.g. 1234567890" />
+            <Input 
+              id="account" 
+              value={account} 
+              onChange={(e) => setAccount(e.target.value.replace(/\D/g, ''))} 
+              placeholder="e.g. 12345678901" 
+              maxLength={14}
+            />
             {errors.account && <p className="text-xs text-destructive">{errors.account}</p>}
           </div>
           {!isBranch && (
