@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, Loader2, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Loader2, Edit, Trash2, Check, ChevronsUpDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,15 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,6 +76,8 @@ export default function AdminUsers() {
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [openBranch, setOpenBranch] = useState(false);
+  const [openRO, setOpenRO] = useState(false);
 
   const queryClient = useQueryClient();
   const { user: authUser } = useAuth();
@@ -89,7 +100,7 @@ export default function AdminUsers() {
   const { data: branches = [] } = useQuery({
     queryKey: ["branches"],
     queryFn: async () => {
-      const res = await api.get("/branches");
+      const res = await api.get("/branches", { params: { limit: 1000 } });
       return res.data;
     },
     enabled: isAdmin,
@@ -98,7 +109,7 @@ export default function AdminUsers() {
   const { data: ros = [] } = useQuery({
     queryKey: ["ros"],
     queryFn: async () => {
-      const res = await api.get("/regional-offices");
+      const res = await api.get("/regional-offices", { params: { limit: 1000 } });
       return res.data;
     },
     enabled: isAdmin,
@@ -408,20 +419,59 @@ export default function AdminUsers() {
                   control={form.control}
                   name="branchId"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col">
                       <FormLabel>Assign Branch *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select branch" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {branches.map((b: any) => (
-                            <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={openBranch} onOpenChange={setOpenBranch}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "w-full justify-between font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value
+                                ? branches.find(
+                                    (b: any) => b.id.toString() === field.value
+                                  )?.name
+                                : "Select branch..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search branch..." />
+                            <CommandList>
+                              <CommandEmpty>No branch found.</CommandEmpty>
+                              <CommandGroup>
+                                {branches.map((b: any) => (
+                                  <CommandItem
+                                    value={b.name}
+                                    key={b.id}
+                                    onSelect={() => {
+                                      form.setValue("branchId", b.id.toString());
+                                      setOpenBranch(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        b.id.toString() === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {b.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -433,20 +483,59 @@ export default function AdminUsers() {
                   control={form.control}
                   name="regionalOfficeId"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col">
                       <FormLabel>Assign Regional Office *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Regional Office" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {ros.map((r: any) => (
-                            <SelectItem key={r.id} value={r.id.toString()}>{r.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={openRO} onOpenChange={setOpenRO}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "w-full justify-between font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value
+                                ? ros.find(
+                                    (r: any) => r.id.toString() === field.value
+                                  )?.name
+                                : "Select regional office..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search regional office..." />
+                            <CommandList>
+                              <CommandEmpty>No regional office found.</CommandEmpty>
+                              <CommandGroup>
+                                {ros.map((r: any) => (
+                                  <CommandItem
+                                    value={r.name}
+                                    key={r.id}
+                                    onSelect={() => {
+                                      form.setValue("regionalOfficeId", r.id.toString());
+                                      setOpenRO(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        r.id.toString() === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {r.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}

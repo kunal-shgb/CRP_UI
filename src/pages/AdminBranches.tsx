@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Loader2, Edit, Trash2, ArrowLeft, Search } from "lucide-react";
+import { Plus, Loader2, Edit, Trash2, ArrowLeft, Search, Check, ChevronsUpDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +22,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { DataTablePagination } from "@/components/DataTablePagination";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 const branchSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -42,6 +52,7 @@ export default function AdminBranches() {
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<any>(null);
+  const [openRO, setOpenRO] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -299,20 +310,59 @@ export default function AdminBranches() {
                 control={form.control}
                 name="regionalOfficeId"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Regional Office *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Regional Office" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {ros.map((r: any) => (
-                          <SelectItem key={r.id} value={r.id.toString()}>{r.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openRO} onOpenChange={setOpenRO}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "w-full justify-between font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value
+                              ? ros.find(
+                                  (r: any) => r.id.toString() === field.value
+                                )?.name
+                              : "Select regional office..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search Regional Office..." />
+                          <CommandList>
+                            <CommandEmpty>No Regional Office found.</CommandEmpty>
+                            <CommandGroup>
+                              {ros.map((r: any) => (
+                                <CommandItem
+                                  value={r.name}
+                                  key={r.id}
+                                  onSelect={() => {
+                                    form.setValue("regionalOfficeId", r.id.toString());
+                                    setOpenRO(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      r.id.toString() === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {r.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
