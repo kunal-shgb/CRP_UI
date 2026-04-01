@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Tickets from "./pages/Tickets";
 import TicketDetail from "./pages/TicketDetail";
+import QrCodes from "./pages/QrCodes";
 import AdminUsers from "./pages/AdminUsers";
 import AdminRegionalOffices from "./pages/AdminRegionalOffices";
 import AdminBranches from "./pages/AdminBranches";
@@ -33,6 +34,7 @@ const App = () => (
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/tickets" element={<Tickets />} />
                 <Route path="/tickets/:id" element={<TicketDetail />} />
+                <Route path="/qr-codes" element={<QrCodes />} />
                 
                 {/* Admin only routes */}
                 <Route element={<ProtectedRoute allowedRoles={["ADMIN", "HEAD_OFFICE"]} />}>

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Ticket, Users, Settings, Building2, ChevronLeft } from "lucide-react";
+import { LayoutDashboard, Ticket, Users, Settings, Building2, ChevronLeft, QrCode } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import logo from "@/images/RRB_LOGO_new.png";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -21,6 +21,7 @@ import {
 const mainNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "All Tickets", url: "/tickets", icon: Ticket },
+  { title: "QR Codes", url: "/qr-codes", icon: QrCode },
 ];
 
 const adminNav = [
