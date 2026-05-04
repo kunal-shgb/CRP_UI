@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 interface NewQrCodeDialogProps {
   open: boolean;
@@ -21,7 +24,17 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
     addressLine2: "", city: "", state: "", pincode: "", solId: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [openMcc, setOpenMcc] = useState(false);
+  const [mccSearch, setMccSearch] = useState("");
   const queryClient = useQueryClient();
+
+  const { data: mccCodes = [], isLoading: isMccLoading } = useQuery({
+    queryKey: ["mcc-codes", mccSearch],
+    queryFn: async () => {
+      const res = await api.get("/mcc-codes", { params: { search: mccSearch } });
+      return res.data;
+    },
+  });
 
   const resetForm = () => {
     setFormData({
@@ -128,9 +141,55 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
             <Input value={formData.ifscCode} onChange={(e) => handleChange("ifscCode", e.target.value)} />
             {errors.ifscCode && <p className="text-xs text-destructive">{errors.ifscCode}</p>}
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex flex-col">
             <Label className="text-xs font-medium">MCC Code *</Label>
-            <Input value={formData.mccCode} onChange={(e) => handleChange("mccCode", e.target.value)} />
+            <Popover open={openMcc} onOpenChange={setOpenMcc}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openMcc}
+                  className="justify-between"
+                >
+                  {formData.mccCode
+                    ? mccCodes.find((mcc: any) => mcc.mcc_code === formData.mccCode)?.mcc_name || formData.mccCode
+                    : "Select MCC code..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0">
+                <Command shouldFilter={false}>
+                  <CommandInput 
+                    placeholder="Search MCC code or name..." 
+                    value={mccSearch} 
+                    onValueChange={setMccSearch} 
+                  />
+                  <CommandList>
+                    <CommandEmpty>{isMccLoading ? "Loading..." : "No MCC code found."}</CommandEmpty>
+                    <CommandGroup>
+                      {mccCodes.map((mcc: any) => (
+                        <CommandItem
+                          key={mcc.id}
+                          value={mcc.mcc_code}
+                          onSelect={(currentValue) => {
+                            handleChange("mccCode", currentValue);
+                            setOpenMcc(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.mccCode === mcc.mcc_code ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {mcc.mcc_code} - {mcc.mcc_name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             {errors.mccCode && <p className="text-xs text-destructive">{errors.mccCode}</p>}
           </div>
           <div className="space-y-1.5">
