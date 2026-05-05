@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -11,6 +10,7 @@ import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NewQrCodeDialogProps {
   open: boolean;
@@ -18,10 +18,11 @@ interface NewQrCodeDialogProps {
 }
 
 export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
-    merchantName: "", mobileNumber: "", accountNumber: "", ifscCode: "",
-    mccCode: "", emailId: "", transactionType: "", addressLine1: "",
-    addressLine2: "", city: "", state: "", pincode: "", solId: ""
+    merchantName: "", mobileNumber: "", accountNumber: "", ifscCode: "PUNB0HGB001",
+    mccCode: "", emailId: `bo${user.branch?.code}shgb@shgb.bank.in`, transactionType: "ALL", addressLine1: "",
+    addressLine2: "", city: "", state: "HARYANA", pincode: "", solId: user.branch?.code
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openMcc, setOpenMcc] = useState(false);
@@ -38,9 +39,9 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
 
   const resetForm = () => {
     setFormData({
-      merchantName: "", mobileNumber: "", accountNumber: "", ifscCode: "",
-      mccCode: "", emailId: "", transactionType: "", addressLine1: "",
-      addressLine2: "", city: "", state: "", pincode: "", solId: ""
+      merchantName: "", mobileNumber: "", accountNumber: "", ifscCode: "PUNB0HGB001",
+      mccCode: "", emailId: `bo${user.branch?.code}shgb@shgb.bank.in`, transactionType: "ALL", addressLine1: "",
+      addressLine2: "", city: "", state: "HARYANA", pincode: "", solId: user.branch?.code
     });
     setErrors({});
   };
@@ -68,12 +69,16 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
   const validate = () => {
     const e: Record<string, string> = {};
     if (!formData.merchantName.trim()) e.merchantName = "Required";
-    
+
     if (!formData.mobileNumber.trim()) e.mobileNumber = "Required";
     else if (!/^\d{10}$/.test(formData.mobileNumber)) e.mobileNumber = "Must be 10 digits";
 
     if (!formData.accountNumber.trim()) e.accountNumber = "Required";
+    else if (!/^\d{14}$/.test(formData.accountNumber)) e.accountNumber = "Must be 14 digits";
+
     if (!formData.ifscCode.trim()) e.ifscCode = "Required";
+
+
     if (!formData.mccCode.trim()) e.mccCode = "Required";
 
     if (formData.emailId && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailId)) {
@@ -82,9 +87,10 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
 
     if (!formData.transactionType) e.transactionType = "Required";
     if (!formData.addressLine1.trim()) e.addressLine1 = "Required";
+    if (!formData.addressLine2.trim()) e.addressLine2 = "Required";
     if (!formData.city.trim()) e.city = "Required";
     if (!formData.state.trim()) e.state = "Required";
-    
+
     if (!formData.pincode.trim()) e.pincode = "Required";
     else if (!/^\d{6}$/.test(formData.pincode)) e.pincode = "Must be 6 digits";
 
@@ -133,12 +139,12 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Account Number *</Label>
-            <Input value={formData.accountNumber} onChange={(e) => handleChange("accountNumber", e.target.value)} />
+            <Input value={formData.accountNumber} maxLength={14} onChange={(e) => handleChange("accountNumber", e.target.value.replace(/\D/g, ''))} />
             {errors.accountNumber && <p className="text-xs text-destructive">{errors.accountNumber}</p>}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">IFSC Code *</Label>
-            <Input value={formData.ifscCode} onChange={(e) => handleChange("ifscCode", e.target.value)} />
+            <Input value={formData.ifscCode} maxLength={11} onChange={(e) => handleChange("ifscCode", e.target.value)} />
             {errors.ifscCode && <p className="text-xs text-destructive">{errors.ifscCode}</p>}
           </div>
           <div className="space-y-1.5 flex flex-col">
@@ -152,17 +158,17 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
                   className="justify-between"
                 >
                   {formData.mccCode
-                    ? mccCodes.find((mcc: any) => mcc.mcc_code === formData.mccCode)?.mcc_name || formData.mccCode
+                    ? mccCodes.find((mcc: any) => mcc.mcc_code === formData.mccCode)?.mcc_code
                     : "Select MCC code..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="p-0">
                 <Command shouldFilter={false}>
-                  <CommandInput 
-                    placeholder="Search MCC code or name..." 
-                    value={mccSearch} 
-                    onValueChange={setMccSearch} 
+                  <CommandInput
+                    placeholder="Search MCC code or name..."
+                    value={mccSearch}
+                    onValueChange={setMccSearch}
                   />
                   <CommandList>
                     <CommandEmpty>{isMccLoading ? "Loading..." : "No MCC code found."}</CommandEmpty>
@@ -199,19 +205,12 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Transaction Type *</Label>
-            <Select value={formData.transactionType} onValueChange={(v) => handleChange("transactionType", v)}>
-              <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="UPI">UPI</SelectItem>
-                <SelectItem value="IMPS">IMPS</SelectItem>
-                <SelectItem value="AEPS">AEPS</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input value={formData.transactionType} onChange={(e) => handleChange("transactionType", e.target.value)} />
             {errors.transactionType && <p className="text-xs text-destructive">{errors.transactionType}</p>}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Sol ID *</Label>
-            <Input value={formData.solId} onChange={(e) => handleChange("solId", e.target.value)} />
+            <Input value={formData.solId} maxLength={4} onChange={(e) => handleChange("solId", e.target.value.replace(/\D/g, ''))} />
             {errors.solId && <p className="text-xs text-destructive">{errors.solId}</p>}
           </div>
           <div className="col-span-2 space-y-1.5">
@@ -220,8 +219,9 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
             {errors.addressLine1 && <p className="text-xs text-destructive">{errors.addressLine1}</p>}
           </div>
           <div className="col-span-2 space-y-1.5">
-            <Label className="text-xs font-medium">Address Line 2</Label>
+            <Label className="text-xs font-medium">Address Line 2 *</Label>
             <Input value={formData.addressLine2} onChange={(e) => handleChange("addressLine2", e.target.value)} />
+            {errors.addressLine2 && <p className="text-xs text-destructive">{errors.addressLine2}</p>}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">City *</Label>
