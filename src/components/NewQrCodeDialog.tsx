@@ -129,7 +129,7 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
         <div className="grid grid-cols-2 gap-4 py-4">
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Merchant Name *</Label>
-            <Input value={formData.merchantName} onChange={(e) => handleChange("merchantName", e.target.value)} />
+            <Input value={formData.merchantName} onChange={(e) => handleChange("merchantName", e.target.value.toUpperCase())} />
             {errors.merchantName && <p className="text-xs text-destructive">{errors.merchantName}</p>}
           </div>
           <div className="space-y-1.5">
@@ -144,7 +144,7 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">IFSC Code *</Label>
-            <Input value={formData.ifscCode} maxLength={11} onChange={(e) => handleChange("ifscCode", e.target.value)} />
+            <Input value={formData.ifscCode} maxLength={11} onChange={(e) => handleChange("ifscCode", e.target.value.toUpperCase())} />
             {errors.ifscCode && <p className="text-xs text-destructive">{errors.ifscCode}</p>}
           </div>
           <div className="space-y-1.5 flex flex-col">
@@ -205,7 +205,7 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Transaction Type *</Label>
-            <Input value={formData.transactionType} onChange={(e) => handleChange("transactionType", e.target.value)} />
+            <Input value={formData.transactionType} onChange={(e) => handleChange("transactionType", e.target.value.toUpperCase())} />
             {errors.transactionType && <p className="text-xs text-destructive">{errors.transactionType}</p>}
           </div>
           <div className="space-y-1.5">
@@ -215,22 +215,22 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label className="text-xs font-medium">Address Line 1 *</Label>
-            <Input value={formData.addressLine1} onChange={(e) => handleChange("addressLine1", e.target.value)} />
+            <Input value={formData.addressLine1} onChange={(e) => handleChange("addressLine1", e.target.value.toUpperCase())} />
             {errors.addressLine1 && <p className="text-xs text-destructive">{errors.addressLine1}</p>}
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label className="text-xs font-medium">Address Line 2 *</Label>
-            <Input value={formData.addressLine2} onChange={(e) => handleChange("addressLine2", e.target.value)} />
+            <Input value={formData.addressLine2} onChange={(e) => handleChange("addressLine2", e.target.value.toUpperCase())} />
             {errors.addressLine2 && <p className="text-xs text-destructive">{errors.addressLine2}</p>}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">City *</Label>
-            <Input value={formData.city} onChange={(e) => handleChange("city", e.target.value)} />
+            <Input value={formData.city} onChange={(e) => handleChange("city", e.target.value.toUpperCase())} />
             {errors.city && <p className="text-xs text-destructive">{errors.city}</p>}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">State *</Label>
-            <Input value={formData.state} onChange={(e) => handleChange("state", e.target.value)} />
+            <Input value={formData.state} onChange={(e) => handleChange("state", e.target.value.toUpperCase())} />
             {errors.state && <p className="text-xs text-destructive">{errors.state}</p>}
           </div>
           <div className="space-y-1.5">
