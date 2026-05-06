@@ -37,7 +37,6 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
   // Sync branch state when dialog opens or user data becomes available
   useEffect(() => {
     if (open) {
-      console.log("userE", user);
       if (isBranch && (user as any)?.branchId) {
         setBranch(String((user as any).branchId));
       } else if (!isBranch && !branch) {
@@ -125,8 +124,6 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
 
   const handleSubmit = () => {
     const isValid = validate();
-    console.log("User during submit:", user);
-    console.log("Validation result:", isValid);
     if (!isValid) return;
 
     const payload: any = {
@@ -210,11 +207,11 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
                 <Label htmlFor="utr" className="text-xs font-medium">
                   Unique Transaction Number (UTR/RRN){ticketType !== "Others" && " *"}
                 </Label>
-                <Input 
-                  id="utr" 
-                  value={utr} 
-                  onChange={(e) => setUtr(e.target.value)} 
-                  placeholder="e.g. 422069019371" 
+                <Input
+                  id="utr"
+                  value={utr}
+                  onChange={(e) => setUtr(e.target.value)}
+                  placeholder="e.g. 422069019371"
                   maxLength={product === "NEFT" ? 16 : (product ? 12 : undefined)}
                 />
                 {errors.utr && <p className="text-xs text-destructive">{errors.utr}</p>}
@@ -233,11 +230,11 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
           )}
           <div className="space-y-1.5">
             <Label htmlFor="account" className="text-xs font-medium">Customer Account Number *</Label>
-            <Input 
-              id="account" 
-              value={account} 
-              onChange={(e) => setAccount(e.target.value.replace(/\D/g, ''))} 
-              placeholder="e.g. 12345678901" 
+            <Input
+              id="account"
+              value={account}
+              onChange={(e) => setAccount(e.target.value.replace(/\D/g, ''))}
+              placeholder="e.g. 12345678901"
               maxLength={14}
             />
             {errors.account && <p className="text-xs text-destructive">{errors.account}</p>}
@@ -261,10 +258,10 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label className="text-xs font-medium">Supporting Documents</Label>
-            <Input 
-              type="file" 
-              multiple 
-              className="text-sm" 
+            <Input
+              type="file"
+              multiple
+              className="text-sm"
               onChange={(e) => setFiles(e.target.files)}
             />
             {files && files.length > 0 && (

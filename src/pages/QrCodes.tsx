@@ -32,9 +32,9 @@ export default function QrCodes() {
     queryKey: ["qr-codes", page, limit, search, statusFilter],
     queryFn: async () => {
       const res = await api.get("/qr-codes", {
-        params: { 
-          page, 
-          limit, 
+        params: {
+          page,
+          limit,
           search: search || undefined,
           status: statusFilter === "all" ? undefined : statusFilter,
         }
@@ -49,13 +49,22 @@ export default function QrCodes() {
 
   const handleExportPending = async () => {
     try {
-      const res = await api.get("/qr-codes/export/pending");
-      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: "application/json" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Pending_QR_Codes_${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
+      const res = await api.get("/qr-codes/export/pending", {
+        responseType: 'blob'
+      });
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const dateStr = `${day}-${month}-${year}`;
+      const filename = `Merchantonboarding_SHGB_QR_${dateStr}.txt`;
+      const url = window.URL.createObjectURL(res.data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
       console.error("Export failed:", e);
