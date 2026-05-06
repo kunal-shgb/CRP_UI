@@ -77,7 +77,7 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
     else if (!/^\d{14}$/.test(formData.accountNumber)) e.accountNumber = "Must be 14 digits";
 
     if (!formData.ifscCode.trim()) e.ifscCode = "Required";
-
+    else if (!/^[A-Z0-9]{11}$/.test(formData.ifscCode)) e.ifscCode = "Invalid IFSC Code";
 
     if (!formData.mccCode.trim()) e.mccCode = "Required";
 
