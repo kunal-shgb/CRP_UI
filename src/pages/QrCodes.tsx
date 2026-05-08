@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, Loader2, Download, UploadCloud } from "lucide-react";
+import { Plus, Search, Loader2, Download, UploadCloud, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -171,8 +171,8 @@ export default function QrCodes() {
                     </td>
                     <td className="px-6 py-3 text-right">
                       {qr.status === "AVAILABLE_FOR_DOWNLOAD" && (
-                        <Button variant="ghost" size="sm" onClick={() => downloadPdf(qr.id, qr.qr_pdf_filename)}>
-                          Download PDF
+                        <Button variant="ghost" size="sm" onClick={() => downloadPdf(qr.id, qr.qr_pdf_filename)} className="gap-1.5">
+                          <Paperclip className="h-4 w-4" /> Download QR
                         </Button>
                       )}
                     </td>

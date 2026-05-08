@@ -54,7 +54,6 @@ export function QrCodeUploadDialog({ open, onOpenChange }: QrCodeUploadDialogPro
           <DialogTitle className="text-lg font-semibold">Bulk Upload QR PDFs</DialogTitle>
           <DialogDescription>
             Upload a ZIP file containing the generated QR Code PDFs. <br />
-            Expected filename inside ZIP: <code className="text-xs bg-muted px-1 rounded">accountNumber_mobileNumber.pdf</code>
           </DialogDescription>
         </DialogHeader>
 
@@ -108,7 +107,7 @@ export function QrCodeUploadDialog({ open, onOpenChange }: QrCodeUploadDialogPro
             )}
             
             <DialogFooter>
-              <Button onClick={() => onOpenChange(false)}>Close</Button>
+              <Button onClick={() => { reset(); onOpenChange(false); }}>Close</Button>
             </DialogFooter>
           </div>
         )}
