@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,14 +15,25 @@ import { useAuth } from "@/contexts/AuthContext";
 interface NewQrCodeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  qrCode?: any;
 }
 
-export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
+export function NewQrCodeDialog({ open, onOpenChange, qrCode }: NewQrCodeDialogProps) {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
-    merchantName: "", mobileNumber: "", accountNumber: "", ifscCode: "PUNB0HGB001",
-    mccCode: "", emailId: `bo${user.branch?.code}shgb@shgb.bank.in`, transactionType: "ALL", addressLine1: "",
-    addressLine2: "", city: "", state: "HARYANA", pincode: "", solId: user.branch?.code
+    merchantName: qrCode?.merchant_name || "",
+    mobileNumber: qrCode?.mobile_number || "",
+    accountNumber: qrCode?.account_number || "",
+    ifscCode: qrCode?.ifsc_code || "PUNB0HGB001",
+    mccCode: qrCode?.mcc_code || "",
+    emailId: qrCode?.email_id || `bo${user.branch?.code}shgb@shgb.bank.in`,
+    transactionType: qrCode?.transaction_type || "ALL",
+    addressLine1: qrCode?.address_line1 || "",
+    addressLine2: qrCode?.address_line2 || "",
+    city: qrCode?.city || "",
+    state: qrCode?.state || "HARYANA",
+    pincode: qrCode?.pincode || "",
+    solId: qrCode?.sol_id || user.branch?.code
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openMcc, setOpenMcc] = useState(false);
@@ -39,26 +50,49 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
 
   const resetForm = () => {
     setFormData({
-      merchantName: "", mobileNumber: "", accountNumber: "", ifscCode: "PUNB0HGB001",
-      mccCode: "", emailId: `bo${user.branch?.code}shgb@shgb.bank.in`, transactionType: "ALL", addressLine1: "",
-      addressLine2: "", city: "", state: "HARYANA", pincode: "", solId: user.branch?.code
+      merchantName: qrCode?.merchant_name || "",
+      mobileNumber: qrCode?.mobile_number || "",
+      accountNumber: qrCode?.account_number || "",
+      ifscCode: qrCode?.ifsc_code || "PUNB0HGB001",
+      mccCode: qrCode?.mcc_code || "",
+      emailId: qrCode?.email_id || `bo${user.branch?.code}shgb@shgb.bank.in`,
+      transactionType: qrCode?.transaction_type || "ALL",
+      addressLine1: qrCode?.address_line1 || "",
+      addressLine2: qrCode?.address_line2 || "",
+      city: qrCode?.city || "",
+      state: qrCode?.state || "HARYANA",
+      pincode: qrCode?.pincode || "",
+      solId: qrCode?.sol_id || user.branch?.code
     });
     setErrors({});
   };
 
-  const createMutation = useMutation({
+  // Use useEffect to handle qrCode changes when dialog is already open or re-opened
+  useEffect(() => {
+    if (open) {
+      resetForm();
+    }
+  }, [open, qrCode]);
+
+
+  const mutation = useMutation({
     mutationFn: async (payload: any) => {
-      const res = await api.post("/qr-codes", payload);
-      return res.data;
+      if (qrCode) {
+        const res = await api.patch(`/qr-codes/${qrCode.id}`, payload);
+        return res.data;
+      } else {
+        const res = await api.post("/qr-codes", payload);
+        return res.data;
+      }
     },
     onSuccess: () => {
-      toast.success("QR Code generation requested successfully.");
+      toast.success(qrCode ? "QR Code updated successfully." : "QR Code generation requested successfully.");
       queryClient.invalidateQueries({ queryKey: ["qr-codes"] });
       onOpenChange(false);
       resetForm();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to create QR Code request.");
+      toast.error(error.response?.data?.message || `Failed to ${qrCode ? 'update' : 'create'} QR Code request.`);
     }
   });
 
@@ -103,7 +137,7 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
   const handleSubmit = () => {
     if (!validate()) return;
 
-    createMutation.mutate({
+    mutation.mutate({
       merchant_name: formData.merchantName.trim(),
       mobile_number: formData.mobileNumber.trim(),
       account_number: formData.accountNumber.trim(),
@@ -124,7 +158,9 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
     <Dialog open={open} onOpenChange={(o) => { if (!o) resetForm(); onOpenChange(o); }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">Request QR Code Generation</DialogTitle>
+          <DialogTitle className="text-lg font-semibold">
+            {qrCode ? "Edit QR Code Request" : "Request QR Code Generation"}
+          </DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4 py-4">
           <div className="space-y-1.5">
@@ -241,9 +277,9 @@ export function NewQrCodeDialog({ open, onOpenChange }: NewQrCodeDialogProps) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => { resetForm(); onOpenChange(false); }}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={createMutation.isPending}>
-            {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Submit
+          <Button onClick={handleSubmit} disabled={mutation.isPending}>
+            {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {qrCode ? "Update" : "Submit"}
           </Button>
         </DialogFooter>
       </DialogContent>

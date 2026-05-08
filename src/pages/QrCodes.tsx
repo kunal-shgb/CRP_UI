@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, Loader2, Download, UploadCloud, Paperclip } from "lucide-react";
+import { Plus, Search, Loader2, Download, UploadCloud, Paperclip, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,6 +23,7 @@ export default function QrCodes() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewQrCode, setShowNewQrCode] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [selectedQr, setSelectedQr] = useState<any>(null);
 
   // HO are the only ones who can export and upload
   const isHO = user?.role === "HEAD_OFFICE" || user?.role === "ADMIN";
@@ -85,6 +86,16 @@ export default function QrCodes() {
     }
   };
 
+  const handleEdit = (qr: any) => {
+    setSelectedQr(qr);
+    setShowNewQrCode(true);
+  };
+
+  const handleNewRequest = () => {
+    setSelectedQr(null);
+    setShowNewQrCode(true);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -96,7 +107,7 @@ export default function QrCodes() {
         <h1 className="text-2xl font-semibold tracking-tight">QR Codes</h1>
         <div className="flex gap-2">
           {canCreate && (
-            <Button onClick={() => setShowNewQrCode(true)} className="gap-1.5">
+            <Button onClick={handleNewRequest} className="gap-1.5">
               <Plus className="h-4 w-4" /> Request QR Code
             </Button>
           )}
@@ -164,15 +175,20 @@ export default function QrCodes() {
                       <div className="font-mono text-xs">{qr.account_number}</div>
                       <div className="font-mono text-xs text-muted-foreground">{qr.mobile_number}</div>
                     </td>
-                    <td className="px-6 py-3 text-sm">{qr.branch?.name || "—"}</td>
+                    <td className="px-6 py-3 text-sm">{`${qr.branch?.name}-${qr.branch?.code}` || "—"}</td>
                     <td className="px-6 py-3"><StatusBadge status={qr.status} /></td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">
                       {new Date(qr.created_at).toLocaleDateString("en-IN")}
                     </td>
                     <td className="px-6 py-3 text-right">
                       {qr.status === "AVAILABLE_FOR_DOWNLOAD" && (
-                        <Button variant="ghost" size="sm" onClick={() => downloadPdf(qr.id, qr.qr_pdf_filename)} className="gap-1.5">
+                        <Button variant="ghost" size="sm" onClick={() => downloadPdf(qr.id, qr.qr_pdf_filename)} className="gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
                           <Paperclip className="h-4 w-4" /> Download QR
+                        </Button>
+                      )}
+                      {qr.status === "PENDING_QR_GENERATION" && (
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(qr)} className="gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                          <Pencil className="h-4 w-4" /> Edit
                         </Button>
                       )}
                     </td>
@@ -189,7 +205,11 @@ export default function QrCodes() {
         />
       </div>
 
-      <NewQrCodeDialog open={showNewQrCode} onOpenChange={setShowNewQrCode} />
+      <NewQrCodeDialog 
+        open={showNewQrCode} 
+        onOpenChange={setShowNewQrCode} 
+        qrCode={selectedQr}
+      />
       <QrCodeUploadDialog open={showUploadDialog} onOpenChange={setShowUploadDialog} />
     </motion.div>
   );
