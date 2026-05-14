@@ -55,7 +55,7 @@ export function NewQrCodeDialog({ open, onOpenChange, qrCode }: NewQrCodeDialogP
       accountNumber: qrCode?.account_number || "",
       ifscCode: qrCode?.ifsc_code || "PUNB0HGB001",
       mccCode: qrCode?.mcc_code || "",
-      emailId: qrCode?.email_id || `bo${user.branch?.code}shgb@shgb.bank.in`,
+      emailId: qrCode?.email_id || user.branch?.code ? `bo${user.branch?.code}shgb@shgb.bank.in` : "",
       transactionType: qrCode?.transaction_type || "ALL",
       addressLine1: qrCode?.address_line1 || "",
       addressLine2: qrCode?.address_line2 || "",
