@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainNav = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "All Tickets", url: "/tickets", icon: Ticket },
+  // { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  // { title: "All Tickets", url: "/tickets", icon: Ticket },
   { title: "QR Codes", url: "/qr-codes", icon: QrCode },
 ];
 
@@ -56,7 +56,7 @@ export function AppSidebar() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-sidebar-foreground">Haryana Gramin Bank</p>
-                <p className="text-[10px] text-muted-foreground tracking-wide">COMPLAINT RESOLUTION PORTAL</p>
+                <p className="text-[10px] text-muted-foreground tracking-wide">QR Generation Portal</p>
               </div>
             </div>
           )}
@@ -133,22 +133,22 @@ export function AppSidebar() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate text-sidebar-foreground capitalize">
-                  {user.role === "BRANCH" 
-                    ? user.branch?.name 
-                    : user.role === "REGIONAL_OFFICE" 
-                    ? user.regionalOffice?.name 
-                    : user.role === "HEAD_OFFICE" 
-                    ? "Head Office" 
-                    : "Administrator"}
+                  {user.role === "BRANCH"
+                    ? user.branch?.name
+                    : user.role === "REGIONAL_OFFICE"
+                      ? user.regionalOffice?.name
+                      : user.role === "HEAD_OFFICE"
+                        ? "Head Office"
+                        : "Administrator"}
                 </p>
                 <p className="text-[11px] text-muted-foreground uppercase">
-                  {user.role === "BRANCH" 
-                    ? user.branch?.code 
-                    : user.role === "REGIONAL_OFFICE" 
-                    ? user.regionalOffice?.code 
-                    : user.role === "HEAD_OFFICE" 
-                    ? user.productType 
-                    : "Admin"}
+                  {user.role === "BRANCH"
+                    ? user.branch?.code
+                    : user.role === "REGIONAL_OFFICE"
+                      ? user.regionalOffice?.code
+                      : user.role === "HEAD_OFFICE"
+                        ? user.productType
+                        : "Admin"}
                 </p>
               </div>
             </div>

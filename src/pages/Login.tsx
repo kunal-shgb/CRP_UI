@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2, Eye, EyeOff, FileText, ClipboardCheck, Search, Settings, Bell } from "lucide-react";
 import bgImage from "../images/login_bg.png";
-import bigLogo from "../images/output-onlinepngtools.png"; 
+import bigLogo from "../images/output-onlinepngtools.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -40,7 +40,9 @@ export default function Login() {
   const { login } = useAuth();
   const { toast } = useToast();
 
-  const from = location.state?.from?.pathname || "/";
+  const from = (location.state?.from?.pathname === "/" || !location.state?.from?.pathname)
+    ? "/qr-codes"
+    : location.state.from.pathname;
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -102,23 +104,23 @@ export default function Login() {
           />
           {/* <div className="h-8 w-px bg-gray-300 hidden md:block"></div>
           <h1 className="text-lg md:text-xl font-bold text-[#003366] tracking-tight text-center md:text-left">
-            Complaint Resolution Portal
+            QR Generation Portal
           </h1> */}
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-evenly p-2 relative z-10 w-full overflow-y-auto">
-        
+
         <Card className="w-full max-w-[500px] shadow-2xl border-0 bg-white/50 backdrop-blur-md rounded-xl overflow-hidden shrink-0">
           <div className="p-6">
             <h2 className="text-xl font-bold text-center text-[#003366] mb-6 pb-3 border-b border-gray-100 uppercase tracking-wide">
-              Complaint Resolution Portal
+              QR Generation Portal
             </h2>
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                
+
                 <FormField
                   control={form.control}
                   name="username"

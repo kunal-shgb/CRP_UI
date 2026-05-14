@@ -37,10 +37,10 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
             You don't have permission to access this page. Contact your administrator if you believe this is an error.
           </p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/qr-codes")}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
           >
-            Go to Dashboard
+            Go to QR Codes
           </button>
         </div>
       </div>

@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "7ad4d7c3-3e1a-4ea1-9efb-33de2f7a9e1e",
         "name": "CRP API",
-        "description": "Postman collection for the Complaint Resolution Portal API. Feature-based modular architecture with RBAC.",
+        "description": "Postman collection for the QR Generation Portal API. Feature-based modular architecture with RBAC.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
