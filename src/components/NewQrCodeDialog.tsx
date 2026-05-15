@@ -26,7 +26,7 @@ export function NewQrCodeDialog({ open, onOpenChange, qrCode }: NewQrCodeDialogP
     accountNumber: qrCode?.account_number || "",
     ifscCode: qrCode?.ifsc_code || "PUNB0HGB001",
     mccCode: qrCode?.mcc_code || "",
-    emailId: qrCode?.email_id || `bo${user.branch?.code}shgb@shgb.bank.in`,
+    emailId: qrCode?.email_id ? qrCode?.email_id : (user.branch?.code ? `bo${user.branch?.code}shgb@shgb.bank.in` : ""),
     transactionType: qrCode?.transaction_type || "ALL",
     addressLine1: qrCode?.address_line1 || "",
     addressLine2: qrCode?.address_line2 || "",
@@ -47,7 +47,6 @@ export function NewQrCodeDialog({ open, onOpenChange, qrCode }: NewQrCodeDialogP
       return res.data;
     },
   });
-
   const resetForm = () => {
     setFormData({
       merchantName: qrCode?.merchant_name || "",
@@ -55,7 +54,7 @@ export function NewQrCodeDialog({ open, onOpenChange, qrCode }: NewQrCodeDialogP
       accountNumber: qrCode?.account_number || "",
       ifscCode: qrCode?.ifsc_code || "PUNB0HGB001",
       mccCode: qrCode?.mcc_code || "",
-      emailId: qrCode?.email_id || user.branch?.code ? `bo${user.branch?.code}shgb@shgb.bank.in` : "",
+      emailId: qrCode?.email_id ? qrCode?.email_id : (user.branch?.code ? `bo${user.branch?.code}shgb@shgb.bank.in` : ""),
       transactionType: qrCode?.transaction_type || "ALL",
       addressLine1: qrCode?.address_line1 || "",
       addressLine2: qrCode?.address_line2 || "",
@@ -193,9 +192,7 @@ export function NewQrCodeDialog({ open, onOpenChange, qrCode }: NewQrCodeDialogP
                   aria-expanded={openMcc}
                   className="justify-between"
                 >
-                  {formData.mccCode
-                    ? mccCodes.find((mcc: any) => mcc.mcc_code === formData.mccCode)?.mcc_code
-                    : "Select MCC code..."}
+                  {formData.mccCode || "Select MCC code..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -221,7 +218,7 @@ export function NewQrCodeDialog({ open, onOpenChange, qrCode }: NewQrCodeDialogP
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              formData.mccCode === mcc.mcc_code ? "opacity-100" : "opacity-0"
+                              String(formData.mccCode) === String(mcc.mcc_code) ? "opacity-100" : "opacity-0"
                             )}
                           />
                           {mcc.mcc_code} - {mcc.mcc_name}
