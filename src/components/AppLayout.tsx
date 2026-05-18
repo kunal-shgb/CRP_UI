@@ -14,12 +14,12 @@ export function AppLayout() {
             <div className="flex items-center gap-2">
               <SidebarTrigger />
             </div>
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="h-8 w-8 relative">
                 <Bell className="h-4 w-4" />
                 <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
               </Button>
-            </div>
+            </div> */}
           </header>
           <main className="flex-1 overflow-auto">
             <Outlet />
