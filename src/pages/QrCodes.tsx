@@ -1,22 +1,34 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, Loader2, Download, UploadCloud, Paperclip, Pencil } from "lucide-react";
+import { Plus, Search, Loader2, Download, UploadCloud, Paperclip, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NewQrCodeDialog } from "@/components/NewQrCodeDialog";
 import { QrCodeUploadDialog } from "@/components/QrCodeUploadDialog";
 import type { QrCodeStatus } from "@/lib/mock-data";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { DataTablePagination } from "@/components/DataTablePagination";
+import { toast } from "sonner";
 
 const STATUSES: QrCodeStatus[] = ["PENDING_QR_GENERATION", "AVAILABLE_FOR_DOWNLOAD"];
 
 export default function QrCodes() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -24,10 +36,13 @@ export default function QrCodes() {
   const [showNewQrCode, setShowNewQrCode] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedQr, setSelectedQr] = useState<any>(null);
+  const [qrToDelete, setQrToDelete] = useState<any>(null);
 
   // HO are the only ones who can export and upload
   const isHO = user?.role === "HEAD_OFFICE" || user?.role === "ADMIN";
   const canCreate = user?.role === "BRANCH" || user?.role === "REGIONAL_OFFICE";
+  // Branch, RO, HO and Admin can delete pending QR codes
+  const canDelete = ["BRANCH", "REGIONAL_OFFICE", "HEAD_OFFICE", "ADMIN"].includes(user?.role);
 
   const { data: qrcodesQuery, isLoading } = useQuery({
     queryKey: ["qr-codes", page, limit, search, statusFilter],
@@ -43,6 +58,22 @@ export default function QrCodes() {
       return { qrcodes: res.data, meta: res.meta };
     },
     enabled: !!user,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await api.delete(`/qr-codes/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("QR Code deleted successfully.");
+      queryClient.invalidateQueries({ queryKey: ["qr-codes"] });
+      setQrToDelete(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to delete QR Code.");
+      setQrToDelete(null);
+    },
   });
 
   const qrcodes = qrcodesQuery?.qrcodes ?? [];
@@ -94,6 +125,16 @@ export default function QrCodes() {
   const handleNewRequest = () => {
     setSelectedQr(null);
     setShowNewQrCode(true);
+  };
+
+  const handleDeleteClick = (qr: any) => {
+    setQrToDelete(qr);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (qrToDelete) {
+      deleteMutation.mutate(qrToDelete.id);
+    }
   };
 
   return (
@@ -181,16 +222,28 @@ export default function QrCodes() {
                       {new Date(qr.created_at).toLocaleDateString("en-IN")}
                     </td>
                     <td className="px-6 py-3 text-right">
-                      {qr.status === "AVAILABLE_FOR_DOWNLOAD" && (
-                        <Button variant="ghost" size="sm" onClick={() => downloadPdf(qr.id, qr.qr_pdf_filename)} className="gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
-                          <Paperclip className="h-4 w-4" /> Download QR
-                        </Button>
-                      )}
-                      {qr.status === "PENDING_QR_GENERATION" && (
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(qr)} className="gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                          <Pencil className="h-4 w-4" /> Edit
-                        </Button>
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        {qr.status === "AVAILABLE_FOR_DOWNLOAD" && (
+                          <Button variant="ghost" size="sm" onClick={() => downloadPdf(qr.id, qr.qr_pdf_filename)} className="gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
+                            <Paperclip className="h-4 w-4" /> Download QR
+                          </Button>
+                        )}
+                        {qr.status === "PENDING_QR_GENERATION" && (
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(qr)} className="gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                            <Pencil className="h-4 w-4" /> Edit
+                          </Button>
+                        )}
+                        {canDelete && user.role !== "BRANCH" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteClick(qr)}
+                            className="gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" /> Delete
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -205,12 +258,48 @@ export default function QrCodes() {
         />
       </div>
 
-      <NewQrCodeDialog 
-        open={showNewQrCode} 
-        onOpenChange={setShowNewQrCode} 
+      <NewQrCodeDialog
+        open={showNewQrCode}
+        onOpenChange={setShowNewQrCode}
         qrCode={selectedQr}
       />
       <QrCodeUploadDialog open={showUploadDialog} onOpenChange={setShowUploadDialog} />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!qrToDelete} onOpenChange={(o) => { if (!o) setQrToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete QR Code?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the QR Code request for{" "}
+              <span className="font-semibold text-foreground">{qrToDelete?.merchant_name}</span>{" "}
+              (Account: <span className="font-mono">{qrToDelete?.account_number}</span>).
+              {qrToDelete?.status === "AVAILABLE_FOR_DOWNLOAD" && (
+                <>
+                  <br /><br />
+                  <span className="text-destructive font-medium">Warning:</span> The generated QR PDF file will also be permanently deleted from the server.
+                </>
+              )}
+              <br /><br />
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              {deleteMutation.isPending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...</>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }
